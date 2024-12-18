@@ -1,5 +1,12 @@
+import { Box } from "@mui/material";
+import HeaderBar from "./HeaderBar";
+
 const Home: React.FC = () => {
-  return <h1>Home</h1>;
+  return (
+    <Box>
+      <HeaderBar />
+    </Box>
+  );
 };
 
 export default Home;
