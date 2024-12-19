@@ -1,10 +1,27 @@
 import { Box } from "@mui/material";
+import FirstPart from "./FirstPart";
+import SecondPart from "./SecondPart";
 
 const LoginPage: React.FC = () => {
   return (
     <>
-      <h1>Login Page</h1>;
-      <Box>other components</Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          height: "calc(100vh - 48px)", // Full height minus the header
+          marginTop: "48px", // Match header height
+        }}
+      >
+        {/* Left: FirstPart */}
+        <Box sx={{ flex: 1 }}>
+          <FirstPart />
+        </Box>
+        {/* Right: SecondPart */}
+        <Box sx={{ flex: 1 }}>
+          <SecondPart />
+        </Box>
+      </Box>
     </>
   );
 };
