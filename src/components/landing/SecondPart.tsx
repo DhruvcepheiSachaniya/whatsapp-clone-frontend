@@ -29,53 +29,103 @@ const SecondPart: React.FC = () => {
       >
         <MessageSquare size={20} color="#70486d" />
       </Box>
-      <Typography variant="h5"
+      <Typography
+        variant="h5"
         sx={{
           fontFamily: "'Poppins', sans-serif",
           fontWeight: 600,
           color: "#FFD700", // Gold color
           marginBottom: 1,
-        }}>Login Page</Typography>
+        }}
+      >
+        Welcome Back 😊
+      </Typography>
 
-        <Typography
+      <Typography
+        sx={{
+          fontFamily: "'Roboto', sans-serif",
+          fontSize: "16px",
+          color: "#E0E0E0", // Light grey
+          lineHeight: 1.5,
+        }}
+      >
+        Signin to your account
+      </Typography>
+
+      <Box>
+        <InputLabel
           sx={{
-            fontFamily: "'Roboto', sans-serif",
-            fontSize: "16px",
-            color: "#E0E0E0", // Light grey
-            lineHeight: 1.5,
+            color: "#b1ae59",
           }}
         >
-          Welcome Back 😊
-        </Typography>
-
-      <Box>
-        <InputLabel sx={{
-          color: '#b1ae59'
-        }}>Email</InputLabel>
-        <TextField variant="outlined" sx={{
-          width: '20rem',
-        }}/>
+          Email
+        </InputLabel>
+        <TextField
+          variant="outlined"
+          sx={{
+            width: "20rem",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: "gray", // Default border color
+              },
+              "&:hover fieldset": {
+                borderColor: "#FFD700", // Border color on hover
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#FFD700", // Border color when focused
+              },
+            },
+          }}
+        />
       </Box>
 
       <Box>
-        <InputLabel sx={{
-          color: '#b1ae59'
-        }}>Password</InputLabel>
-        <TextField id="outlined-basic" variant="outlined" sx={{
-          width: '20rem',
-        }}/>
+        <InputLabel
+          sx={{
+            color: "#b1ae59",
+          }}
+        >
+          Password
+        </InputLabel>
+        <TextField
+          variant="outlined"
+          sx={{
+            width: "20rem",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: "gray", // Default border color
+              },
+              "&:hover fieldset": {
+                borderColor: "#FFD700", // Border color on hover
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#FFD700", // Border color when focused
+              },
+            },
+          }}
+        />
       </Box>
-
-      <Typography sx={{
-        fontFamily: "'Poppins', sans-serif",
-        color: "#FFD700",
-        cursor: "pointer",
-      }}>Forget Password?</Typography>
 
       <Box>
-        <Button variant="contained" color="secondary">Submit</Button>
+        <Button
+          sx={{
+            width: "20rem",
+            backgroundColor: "#b1ae59",
+          }}
+          variant="contained"
+        >
+          Submit
+        </Button>
       </Box>
-
+      <Typography
+        sx={{
+          fontFamily: "'Poppins', sans-serif",
+          color: "#FFD700",
+          cursor: "pointer",
+        }}
+      >
+        Forget Password?
+      </Typography>
     </Box>
   );
 };
