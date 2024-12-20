@@ -16,14 +16,34 @@ const FirstPart: React.FC = () => {
       }}
     >
       {/* Decorative Box */}
-      <Box
+      {Array(3).fill('box').map((_, index) => (
+      <Box sx={{
+        display: "flex",
+        flexDirection: "row",
+        gap: '30px'
+      }}>
+      {Array(3).fill('box').map((_, index) => (
+        <Box
+        key={index}
         sx={{
           backgroundColor: "rgb(112, 72, 109)",
           height: "108px",
           width: "108px",
           borderRadius: "12px",
         }}
-      ></Box>
+        ></Box>
+      ))}
+      </Box>
+      ))}
+
+      {/* <Box
+        sx={{
+          backgroundColor: "rgb(112, 72, 109)",
+          height: "108px",
+          width: "108px",
+          borderRadius: "12px",
+        }}
+      ></Box> */}
 
       {/* Typography Section */}
       <Box
