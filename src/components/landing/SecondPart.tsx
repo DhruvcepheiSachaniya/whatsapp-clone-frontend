@@ -1,7 +1,27 @@
 import { Box, Button, InputLabel, TextField, Typography } from "@mui/material";
 import { MessageSquare } from "lucide-react";
+import React from "react";
+import axiosInstance from "../networkCalls/axiosinstance";
+import toast from "react-hot-toast";
 
 const SecondPart: React.FC = () => {
+  const [values, setValues] = React.useState({
+    MobileNumber: "",
+    Password: "",
+  });
+
+  const handleSubmit = async () => {
+    try {
+      // Your logic here
+      const response = await axiosInstance.post("/auth/user", values);
+
+      if (response) {
+        toast.success("Login Successful");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <Box
       sx={{
@@ -58,9 +78,14 @@ const SecondPart: React.FC = () => {
             color: "#b1ae59",
           }}
         >
-          Email
+          Mobile Number
         </InputLabel>
         <TextField
+          type="tel"
+          value={values.MobileNumber}
+          onChange={(e) =>
+            setValues({ ...values, MobileNumber: e.target.value })
+          }
           variant="outlined"
           sx={{
             width: "20rem",
@@ -88,6 +113,9 @@ const SecondPart: React.FC = () => {
           Password
         </InputLabel>
         <TextField
+          value={values.Password}
+          type="password"
+          onChange={(e) => setValues({ ...values, Password: e.target.value })}
           variant="outlined"
           sx={{
             width: "20rem",
@@ -113,6 +141,7 @@ const SecondPart: React.FC = () => {
             backgroundColor: "#b1ae59",
           }}
           variant="contained"
+          onClick={handleSubmit}
         >
           Submit
         </Button>
