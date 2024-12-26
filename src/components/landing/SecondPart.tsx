@@ -1,11 +1,13 @@
 import React from "react";
 import { Box, Button, InputLabel, TextField, Typography } from "@mui/material";
-import { MessageSquare } from "lucide-react";
-import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { setToken } from "../../redux/slice/userslice";
-import { setSignupstepper } from "../../redux/slice/stepper";
+import {
+  setSignupstepper,
+  setForgetPasswordstepper,
+} from "../../redux/slice/stepper";
 import axiosInstance from "../networkCalls/axiosinstance";
+import toast from "react-hot-toast";
+import { setToken } from "../../redux/slice/userslice";
 
 const initialState = {
   MobileNumber: "",
@@ -27,8 +29,11 @@ const SecondPart: React.FC = () => {
   const [state, formDispatch] = React.useReducer(reducer, initialState);
   const dispatch = useDispatch();
   const signupstepper = useSelector((state) => state.stepper.Signupstepper);
+  const forgetPasswordstepper = useSelector(
+    (state) => state.stepper.ForgetPasswordstepper
+  );
 
-  const handlechange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     formDispatch({
       type: "SET_FIELD",
       field: e.target.name,
@@ -38,255 +43,203 @@ const SecondPart: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const endpoint =
-        signupstepper === false ? "/auth/user" : "/auth/user/signup";
-      const response = await axiosInstance.post(endpoint, state);
-
-      if (response.status === 200) {
-        if (response.data.token) {
-          dispatch(setToken(response.data.token));
+      if (signupstepper) {
+        // Signup API
+        try {
+          const response = await axiosInstance.post("/auth/user/signup", {
+            MobileNumber: state.MobileNumber,
+            UserName: state.Username,
+            Password: state.Password,
+            Email: state.Email,
+          });
+          console.log(response);
+          if (response.status === 201) {
+            // dispatch(setSignupstepper(false)); // Redirect to login after signup
+            toast.success("Verify Otp sent to your email!");
+            //TODO: handle otp thing here and add loader in button
+          }
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || "Something went wrong.");
         }
-        toast.success(signupstepper ? "Signup Successful" : "Login Successful");
+      } else if (forgetPasswordstepper) {
+        // Forget Password API
+        const response = await axiosInstance.get("/user/password", {
+          data: {
+            RegEmail: state.Email,
+          },
+        });
+
+        if (response.status === 200) {
+          dispatch(setForgetPasswordstepper(false)); // Redirect to login
+          toast.success("Password reset email sent!");
+          //handle otp thing here
+        }
+      } else {
+        // Login API
+        const response = await axiosInstance.post("/auth/user", {
+          MobileNumber: state.MobileNumber,
+          Password: state.Password,
+        });
+
+        if (response.status === 200) {
+          dispatch(setToken(response.data.token));
+          toast.success("Login successful!");
+          // Redirect to dashboard
+        }
       }
     } catch (error: any) {
-      toast.success(
-        error.response.data.message || "An error occurred. Please try again."
-      );
+      toast.error(error.response?.data?.message || "Something went wrong.");
     }
   };
 
   return (
     <Box
       sx={{
-        width: "100%", // Full width of parent container (50% of the screen)
-        height: "100%", // Full height of parent container
-        backgroundColor: "#664163",
-        display: "flex", // Center content
+        width: "100%",
+        height: "100%",
+        display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         color: "#FFFFFF",
-        gap: 1,
+        gap: 2,
+        backgroundColor: "#664163",
       }}
     >
-      {/* Message Icon with Background */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#b1ae59", // Light background for icon
-          borderRadius: "8px", // Rounded rectangle
-          padding: "4px 8px", // Padding for the rectangle
-        }}
-      >
-        <MessageSquare size={20} color="#70486d" />
-      </Box>
-      <Typography
-        variant="h5"
-        sx={{
-          fontFamily: "'Poppins', sans-serif",
-          fontWeight: 600,
-          color: "#FFD700", // Gold color
-          marginBottom: 1,
-        }}
-      >
-        Welcome Back 😊
-      </Typography>
-      {signupstepper === false ? (
-        <Typography
-          sx={{
-            fontFamily: "'Roboto', sans-serif",
-            fontSize: "16px",
-            color: "#E0E0E0", // Light grey
-            lineHeight: 1.5,
-          }}
-        >
-          Signin to your account
+      {signupstepper ? (
+        <Typography variant="h5" sx={{ color: "#FFD700" }}>
+          Signup to your account
+        </Typography>
+      ) : forgetPasswordstepper ? (
+        <Typography variant="h5" sx={{ color: "#FFD700" }}>
+          Forget Password
         </Typography>
       ) : (
-        <Typography
-          sx={{
-            fontFamily: "'Roboto', sans-serif",
-            fontSize: "16px",
-            color: "#E0E0E0", // Light grey
-            lineHeight: 1.5,
-          }}
-        >
-          {" "}
-          signup to your account
+        <Typography variant="h5" sx={{ color: "#FFD700" }}>
+          Sign in to your account
         </Typography>
       )}
 
-      {signupstepper === true && (
-        <Box>
-          <InputLabel
-            sx={{
-              color: "#b1ae59",
-            }}
-          >
-            Username
-          </InputLabel>
-          <TextField
-            name="Username"
-            typeof="text"
-            value={state.Username}
-            onChange={handlechange}
-            variant="outlined"
-            sx={{
-              width: "20rem",
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "gray", // Default border color
-                },
-                "&:hover fieldset": {
-                  borderColor: "#FFD700", // Border color on hover
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#FFD700", // Border color when focused
-                },
-              },
-            }}
-          />
-        </Box>
-      )}
-
+      {/* Form Fields */}
       <Box>
-        <InputLabel
-          sx={{
-            color: "#b1ae59",
-          }}
-        >
-          Mobile Number
-        </InputLabel>
-        <TextField
-          name="MobileNumber"
-          type="tel"
-          value={state.MobileNumber}
-          onChange={handlechange}
-          variant="outlined"
-          sx={{
-            width: "20rem",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "gray", // Default border color
-              },
-              "&:hover fieldset": {
-                borderColor: "#FFD700", // Border color on hover
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "#FFD700", // Border color when focused
-              },
-            },
-          }}
-        />
+        {(signupstepper || !forgetPasswordstepper) && (
+          <>
+            <InputLabel sx={{ color: "#b1ae59" }}>Mobile Number</InputLabel>
+            <TextField
+              name="MobileNumber"
+              value={state.MobileNumber}
+              onChange={handleChange}
+              variant="outlined"
+              sx={{ width: "20rem", mb: 2 }}
+            />
+          </>
+        )}
+        {signupstepper && (
+          <>
+            <InputLabel sx={{ color: "#b1ae59" }}>Username</InputLabel>
+            <TextField
+              name="Username"
+              value={state.Username}
+              onChange={handleChange}
+              variant="outlined"
+              sx={{ width: "20rem", mb: 2 }}
+            />
+          </>
+        )}
+        {(signupstepper || forgetPasswordstepper) && (
+          <>
+            <InputLabel sx={{ color: "#b1ae59" }}>Email</InputLabel>
+            <TextField
+              name="Email"
+              value={state.Email}
+              onChange={handleChange}
+              variant="outlined"
+              sx={{ width: "20rem", mb: 2 }}
+            />
+          </>
+        )}
+        {(signupstepper || !forgetPasswordstepper) && (
+          <>
+            <InputLabel sx={{ color: "#b1ae59" }}>Password</InputLabel>
+            <TextField
+              name="Password"
+              value={state.Password}
+              onChange={handleChange}
+              type="password"
+              variant="outlined"
+              sx={{ width: "20rem", mb: 2 }}
+            />
+          </>
+        )}
       </Box>
 
-      {signupstepper === true && (
-        <Box>
-          <InputLabel
-            sx={{
-              color: "#b1ae59",
-            }}
-          >
-            Email
-          </InputLabel>
-          <TextField
-            name="Email"
-            type="email"
-            value={state.Email}
-            onChange={handlechange}
-            variant="outlined"
-            sx={{
-              width: "20rem",
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "gray", // Default border color
-                },
-                "&:hover fieldset": {
-                  borderColor: "#FFD700", // Border color on hover
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#FFD700", // Border color when focused
-                },
-              },
-            }}
-          />
-        </Box>
-      )}
+      {/* Submit Button */}
+      <Button
+        sx={{
+          width: "20rem",
+          backgroundColor: "#b1ae59",
+        }}
+        variant="contained"
+        onClick={handleSubmit}
+      >
+        {signupstepper
+          ? "Signup"
+          : forgetPasswordstepper
+          ? "Reset Password"
+          : "Login"}
+      </Button>
 
-      <Box>
-        <InputLabel
-          sx={{
-            color: "#b1ae59",
-          }}
-        >
-          Password
-        </InputLabel>
-        <TextField
-          value={state.Password}
-          name="Password"
-          type="password"
-          onChange={handlechange}
-          variant="outlined"
-          sx={{
-            width: "20rem",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "gray", // Default border color
-              },
-              "&:hover fieldset": {
-                borderColor: "#FFD700", // Border color on hover
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "#FFD700", // Border color when focused
-              },
-            },
-          }}
-        />
-      </Box>
-
-      <Box>
-        <Button
-          sx={{
-            width: "20rem",
-            backgroundColor: "#b1ae59",
-          }}
-          variant="contained"
-          onClick={handleSubmit}
-        >
-          Submit
-        </Button>
-      </Box>
-      {signupstepper === false && (
-        <Typography
-          sx={{
-            fontFamily: "'Poppins', sans-serif",
-            // color: "#FFD700",
-          }}
-        >
-          Didn't have an account?{" "}
+      {/* Navigation Links */}
+      <Box sx={{ mt: 2 }}>
+        {!signupstepper && !forgetPasswordstepper && (
+          <>
+            <Typography
+              onClick={() => dispatch(setSignupstepper(true))}
+              sx={{
+                color: "#FFD700",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              Don't have an account? Register
+            </Typography>
+            <Typography
+              onClick={() => dispatch(setForgetPasswordstepper(true))}
+              sx={{
+                color: "#FFD700",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              Forgot Password?
+            </Typography>
+          </>
+        )}
+        {signupstepper && (
           <Typography
-            onClick={() => dispatch(setSignupstepper(true))}
+            onClick={() => dispatch(setSignupstepper(false))}
             sx={{
-              fontFamily: "'poppins', sans-serif",
               color: "#FFD700",
               cursor: "pointer",
+              textDecoration: "underline",
             }}
           >
-            Register
+            Already have an account? Login
           </Typography>
-        </Typography>
-      )}
-      <Typography
-        sx={{
-          fontFamily: "'Poppins', sans-serif",
-          color: "#FFD700",
-          cursor: "pointer",
-        }}
-      >
-        Forget Password?
-      </Typography>
+        )}
+        {forgetPasswordstepper && (
+          <Typography
+            onClick={() => dispatch(setForgetPasswordstepper(false))}
+            sx={{
+              color: "#FFD700",
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            Back to Login
+          </Typography>
+        )}
+      </Box>
     </Box>
   );
 };
