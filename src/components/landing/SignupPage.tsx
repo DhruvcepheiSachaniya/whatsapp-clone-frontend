@@ -1,14 +1,17 @@
-import { Box } from "@mui/material";
+import { Box, useMediaQuery } from "@mui/material";
 import FirstPart from "./FirstPart";
 import SecondPart from "./SecondPart";
+import theme from "../../styles/style";
 
 const SignUpPage: React.FC = () => {
+  const issmallscreen = useMediaQuery(theme.breakpoints.down("sm")); // Check if the screen is smaller than sm
+
   return (
     <>
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
+          flexDirection: issmallscreen ? 'column' : 'row',
           height: "calc(100vh - 48px)", // Full height minus the header
           marginTop: "48px", // Match header height
         }}
