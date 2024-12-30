@@ -4,10 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   setSignupstepper,
   setForgetPasswordstepper,
+  setVerifyOtpstepper,
 } from "../../redux/slice/stepper";
 import axiosInstance from "../networkCalls/axiosinstance";
 import toast from "react-hot-toast";
 import { setToken } from "../../redux/slice/userslice";
+import OTP from "../OtpInput";
 
 const initialState = {
   MobileNumber: "",
@@ -29,9 +31,17 @@ const SecondPart: React.FC = () => {
   const [state, formDispatch] = React.useReducer(reducer, initialState);
   const dispatch = useDispatch();
   const signupstepper = useSelector((state) => state.stepper.Signupstepper);
+
   const forgetPasswordstepper = useSelector(
     (state) => state.stepper.ForgetPasswordstepper
   );
+
+  const verifyOtpstepper = useSelector(
+    (state) => state.stepper.VerifyOtpstepper
+  );
+
+  // Otp state
+  const [otp, setOtp] = React.useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     formDispatch({
@@ -52,10 +62,11 @@ const SecondPart: React.FC = () => {
             Password: state.Password,
             Email: state.Email,
           });
-          console.log(response);
+
           if (response.status === 201) {
-            // dispatch(setSignupstepper(false)); // Redirect to login after signup
+            dispatch(setSignupstepper(false)); // Redirect to login after signup
             toast.success("Verify Otp sent to your email!");
+            dispatch(setVerifyOtpstepper(true));
             //TODO: handle otp thing here and add loader in button
           }
         } catch (error: any) {
@@ -73,6 +84,22 @@ const SecondPart: React.FC = () => {
           dispatch(setForgetPasswordstepper(false)); // Redirect to login
           toast.success("Password reset email sent!");
           //handle otp thing here
+        }
+      } else if (verifyOtpstepper) {
+        // Verify OTP API
+        try {
+          const response = await axiosInstance.post("/auth/varify", {
+            email: state.Email,
+            otp: Number(otp),
+          });
+
+          if (response.status === 201) {
+            toast.success("OTP verified! can login now");
+            dispatch(setVerifyOtpstepper(false)); // Redirect to login
+            // empty every field empty here
+          }
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || "Something went wrong.");
         }
       } else {
         // Login API
@@ -122,54 +149,68 @@ const SecondPart: React.FC = () => {
 
       {/* Form Fields */}
       <Box>
-        {(signupstepper || !forgetPasswordstepper) && (
-          <>
-            <InputLabel sx={{ color: "#b1ae59" }}>Mobile Number</InputLabel>
-            <TextField
-              name="MobileNumber"
-              value={state.MobileNumber}
-              onChange={handleChange}
-              variant="outlined"
-              sx={{ width: "20rem", mb: 2 }}
+        {verifyOtpstepper ? (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <InputLabel sx={{ color: "#b1ae59" }}>Enter OTP</InputLabel>
+            <OTP
+              separator={<span>-</span>}
+              value={otp}
+              onChange={setOtp}
+              length={6}
             />
-          </>
-        )}
-        {signupstepper && (
-          <>
-            <InputLabel sx={{ color: "#b1ae59" }}>Username</InputLabel>
-            <TextField
-              name="Username"
-              value={state.Username}
-              onChange={handleChange}
-              variant="outlined"
-              sx={{ width: "20rem", mb: 2 }}
-            />
-          </>
-        )}
-        {(signupstepper || forgetPasswordstepper) && (
-          <>
-            <InputLabel sx={{ color: "#b1ae59" }}>Email</InputLabel>
-            <TextField
-              name="Email"
-              value={state.Email}
-              onChange={handleChange}
-              variant="outlined"
-              sx={{ width: "20rem", mb: 2 }}
-            />
-          </>
-        )}
-        {(signupstepper || !forgetPasswordstepper) && (
-          <>
-            <InputLabel sx={{ color: "#b1ae59" }}>Password</InputLabel>
-            <TextField
-              name="Password"
-              value={state.Password}
-              onChange={handleChange}
-              type="password"
-              variant="outlined"
-              sx={{ width: "20rem", mb: 2 }}
-            />
-          </>
+          </Box>
+        ) : (
+          <Box>
+            {(signupstepper || !forgetPasswordstepper) && (
+              <>
+                <InputLabel sx={{ color: "#b1ae59" }}>Mobile Number</InputLabel>
+                <TextField
+                  name="MobileNumber"
+                  value={state.MobileNumber}
+                  onChange={handleChange}
+                  variant="outlined"
+                  sx={{ width: "20rem", mb: 2 }}
+                />
+              </>
+            )}
+            {signupstepper && (
+              <>
+                <InputLabel sx={{ color: "#b1ae59" }}>Username</InputLabel>
+                <TextField
+                  name="Username"
+                  value={state.Username}
+                  onChange={handleChange}
+                  variant="outlined"
+                  sx={{ width: "20rem", mb: 2 }}
+                />
+              </>
+            )}
+            {(signupstepper || forgetPasswordstepper) && (
+              <>
+                <InputLabel sx={{ color: "#b1ae59" }}>Email</InputLabel>
+                <TextField
+                  name="Email"
+                  value={state.Email}
+                  onChange={handleChange}
+                  variant="outlined"
+                  sx={{ width: "20rem", mb: 2 }}
+                />
+              </>
+            )}
+            {(signupstepper || !forgetPasswordstepper) && (
+              <>
+                <InputLabel sx={{ color: "#b1ae59" }}>Password</InputLabel>
+                <TextField
+                  name="Password"
+                  value={state.Password}
+                  onChange={handleChange}
+                  type="password"
+                  variant="outlined"
+                  sx={{ width: "20rem", mb: 2 }}
+                />
+              </>
+            )}
+          </Box>
         )}
       </Box>
 
@@ -186,6 +227,8 @@ const SecondPart: React.FC = () => {
           ? "Signup"
           : forgetPasswordstepper
           ? "Reset Password"
+          : verifyOtpstepper
+          ? "Verify OTP"
           : "Login"}
       </Button>
 
