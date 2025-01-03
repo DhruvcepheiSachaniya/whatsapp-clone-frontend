@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Button, InputLabel, TextField, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -10,6 +10,7 @@ import axiosInstance from "../networkCalls/axiosinstance";
 import toast from "react-hot-toast";
 import { setToken } from "../../redux/slice/userslice";
 import OTP from "../OtpInput";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const initialState = {
   MobileNumber: "",
@@ -40,6 +41,22 @@ const SecondPart: React.FC = () => {
     (state) => state.stepper.VerifyOtpstepper
   );
 
+  //Signup Loader
+  const [isLoader, setLoader] = React.useState(false);
+
+  // Timer state
+  const [timer, setTimer] = React.useState(120); // 5 minutes timer
+
+  // Timer effect
+  useEffect(() => {
+    if (verifyOtpstepper && timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [verifyOtpstepper, timer]);
+
   // Otp state
   const [otp, setOtp] = React.useState("");
 
@@ -56,6 +73,7 @@ const SecondPart: React.FC = () => {
       if (signupstepper) {
         // Signup API
         try {
+          setLoader(true);
           const response = await axiosInstance.post("/auth/user/signup", {
             MobileNumber: state.MobileNumber,
             UserName: state.Username,
@@ -67,27 +85,41 @@ const SecondPart: React.FC = () => {
             dispatch(setSignupstepper(false)); // Redirect to login after signup
             toast.success("Verify Otp sent to your email!");
             dispatch(setVerifyOtpstepper(true));
-            //TODO: handle otp thing here and add loader in button
+            //emplty every field here
           }
         } catch (error: any) {
           toast.error(error.response?.data?.message || "Something went wrong.");
+        } finally {
+          setLoader(false); //for signup button
+          formDispatch({ type: "SET_FIELD", field: "MobileNumber", value: "" });
+          formDispatch({ type: "SET_FIELD", field: "Username", value: "" });
+          formDispatch({ type: "SET_FIELD", field: "Password", value: "" });
+          formDispatch({ type: "SET_FIELD", field: "Email", value: "" });
         }
       } else if (forgetPasswordstepper) {
         // Forget Password API
-        const response = await axiosInstance.get("/user/password", {
-          data: {
-            RegEmail: state.Email,
-          },
-        });
+        setLoader(true);
+        try {
+          const response = await axiosInstance.get("/user/password", {
+            data: {
+              RegEmail: state.Email,
+            },
+          });
 
-        if (response.status === 200) {
-          dispatch(setForgetPasswordstepper(false)); // Redirect to login
-          toast.success("Password reset email sent!");
-          //handle otp thing here
+          if (response.status === 200) {
+            dispatch(setForgetPasswordstepper(false)); // Redirect to login
+            toast.success("Password reset email sent!");
+            //handle otp thing here
+          }
+        } catch (error: any) {
+          console.log(error);
+        } finally {
+          setLoader(false); //for forget password button
         }
       } else if (verifyOtpstepper) {
         // Verify OTP API
         try {
+          setLoader(true);
           const response = await axiosInstance.post("/auth/varify", {
             email: state.Email,
             otp: Number(otp),
@@ -100,9 +132,12 @@ const SecondPart: React.FC = () => {
           }
         } catch (error: any) {
           toast.error(error.response?.data?.message || "Something went wrong.");
+        } finally {
+          setLoader(false); //for verify otp button
         }
       } else {
         // Login API
+        setLoader(true);
         const response = await axiosInstance.post("/auth/user", {
           MobileNumber: state.MobileNumber,
           Password: state.Password,
@@ -116,6 +151,8 @@ const SecondPart: React.FC = () => {
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Something went wrong.");
+    } finally {
+      setLoader(false); //for login button
     }
   };
 
@@ -146,7 +183,6 @@ const SecondPart: React.FC = () => {
           Sign in to your account
         </Typography>
       )}
-
       {/* Form Fields */}
       <Box>
         {verifyOtpstepper ? (
@@ -214,6 +250,14 @@ const SecondPart: React.FC = () => {
         )}
       </Box>
 
+      {verifyOtpstepper && (
+        <Box sx={{ mt: 2 }}>
+          <Typography sx={{ color: "#FFD700" }}>
+            OTP Expire in: {Math.floor(timer / 60)}:
+            {("0" + (timer % 60)).slice(-2)}
+          </Typography>
+        </Box>
+      )}
       {/* Submit Button */}
       <Button
         sx={{
@@ -223,15 +267,20 @@ const SecondPart: React.FC = () => {
         variant="contained"
         onClick={handleSubmit}
       >
-        {signupstepper
-          ? "Signup"
-          : forgetPasswordstepper
-          ? "Reset Password"
-          : verifyOtpstepper
-          ? "Verify OTP"
-          : "Login"}
+        {isLoader ? (
+          <CircularProgress size={20} color="inherit" />
+        ) : (
+          <>
+            {signupstepper
+              ? "Signup"
+              : forgetPasswordstepper
+              ? "Reset Password"
+              : verifyOtpstepper
+              ? "Verify OTP"
+              : "Login"}{" "}
+          </>
+        )}
       </Button>
-
       {/* Navigation Links */}
       <Box sx={{ mt: 2 }}>
         {!signupstepper && !forgetPasswordstepper && (
