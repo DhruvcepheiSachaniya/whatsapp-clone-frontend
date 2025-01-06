@@ -5,6 +5,8 @@ import {
   setSignupstepper,
   setForgetPasswordstepper,
   setVerifyOtpstepper,
+  setSecurityCodestepper,
+  setAllowChangePassword,
 } from "../../redux/slice/stepper";
 import axiosInstance from "../networkCalls/axiosinstance";
 import toast from "react-hot-toast";
@@ -39,6 +41,14 @@ const SecondPart: React.FC = () => {
 
   const verifyOtpstepper = useSelector(
     (state) => state.stepper.VerifyOtpstepper
+  );
+
+  const securityCodestepper = useSelector(
+    (state) => state.stepper.SecurityCodestepper
+  );
+
+  const allowChangePassword = useSelector(
+    (state) => state.stepper.AllowChangePassword
   );
 
   //Signup Loader
@@ -100,19 +110,19 @@ const SecondPart: React.FC = () => {
         // Forget Password API
         setLoader(true);
         try {
-          const response = await axiosInstance.get("/user/password", {
-            data: {
-              RegEmail: state.Email,
-            },
+          const response = await axiosInstance.post("/user/password", {
+            RegEmail: state.Email,
           });
 
           if (response.status === 200) {
-            dispatch(setForgetPasswordstepper(false)); // Redirect to login
-            toast.success("Password reset email sent!");
-            //handle otp thing here
+            //handle after forget password
+            //TODO:- first send security code ---> verify security code ---> allow change password
+            toast.success("Security Code hase Sent you Email!");
+            dispatch(setSecurityCodestepper(true));
+            dispatch(setForgetPasswordstepper(false));
           }
         } catch (error: any) {
-          console.log(error);
+          toast.error(error.response?.data?.message || "Something went wrong.");
         } finally {
           setLoader(false); //for forget password button
         }
@@ -134,6 +144,44 @@ const SecondPart: React.FC = () => {
           toast.error(error.response?.data?.message || "Something went wrong.");
         } finally {
           setLoader(false); //for verify otp button
+        }
+      } else if (securityCodestepper) {
+        try {
+          setLoader(true);
+          const response = await axiosInstance.post("/user/varify", {
+            RegEmail: state.Email,
+            code: state.SecurityCode,
+          });
+
+          if (response.status === 200) {
+            toast.success("Security Code verified! can reset password now");
+            dispatch(setSecurityCodestepper(false));
+            dispatch(setAllowChangePassword(true));
+            //TODO:- LET user reset password
+          }
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || "Something went wrong.");
+        } finally {
+          setLoader(false); //for security code button
+        }
+      } else if (allowChangePassword) {
+        try {
+          setLoader(true);
+          const response = await axiosInstance.post("/user/changepassword", {
+            RegEmail: state.Email,
+            newPass: state.NewPassword,
+            confirmPass: state.ConfirmPassword,
+          });
+
+          if (response.status === 200) {
+            toast.success("Password changed successfully!");
+            dispatch(setAllowChangePassword(false));
+            dispatch(setForgetPasswordstepper(false));
+          }
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || "Something went wrong.");
+        } finally {
+          setLoader(false); //for change password button
         }
       } else {
         // Login API
@@ -246,6 +294,46 @@ const SecondPart: React.FC = () => {
                 />
               </>
             )}
+            {securityCodestepper && (
+              <>
+                <InputLabel sx={{ color: "#b1ae59" }}>Security code</InputLabel>
+                <TextField
+                  name="SecurityCode"
+                  value={state.SecurityCode}
+                  onChange={handleChange}
+                  variant="outlined"
+                  sx={{ width: "20rem", mb: 2 }}
+                />
+              </>
+            )}
+            {allowChangePassword && (
+              <>
+                <InputLabel sx={{ color: "#b1ae59" }}>New Password</InputLabel>
+                <TextField
+                  name="NewPassword"
+                  value={state.NewPassword}
+                  onChange={handleChange}
+                  type="password"
+                  variant="outlined"
+                  sx={{ width: "20rem", mb: 2 }}
+                />
+              </>
+            )}
+            {allowChangePassword && (
+              <>
+                <InputLabel sx={{ color: "#b1ae59" }}>
+                  Confirm Password
+                </InputLabel>
+                <TextField
+                  name="ConfirmPassword"
+                  value={state.ConfirmPassword}
+                  onChange={handleChange}
+                  type="password"
+                  variant="outlined"
+                  sx={{ width: "20rem", mb: 2 }}
+                />
+              </>
+            )}
           </Box>
         )}
       </Box>
@@ -277,6 +365,10 @@ const SecondPart: React.FC = () => {
               ? "Reset Password"
               : verifyOtpstepper
               ? "Verify OTP"
+              : securityCodestepper
+              ? "Verify Security Code"
+              : allowChangePassword
+              ? "Change Password"
               : "Login"}{" "}
           </>
         )}
