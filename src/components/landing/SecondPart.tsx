@@ -55,7 +55,8 @@ const SecondPart: React.FC = () => {
   const [isLoader, setLoader] = React.useState(false);
 
   // Timer state
-  const [timer, setTimer] = React.useState(120); // 5 minutes timer
+  const seconds = verifyOtpstepper ? 120 : 300; // if forgetpasswordstepper then 5 minutes timer else 2 minutes
+  const [timer, setTimer] = React.useState(seconds); // 5 minutes timer
 
   // Timer effect
   useEffect(() => {
@@ -64,8 +65,13 @@ const SecondPart: React.FC = () => {
         setTimer((prevTimer) => prevTimer - 1);
       }, 1000);
       return () => clearInterval(interval);
+    } else if (securityCodestepper && timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+      return () => clearInterval(interval);
     }
-  }, [verifyOtpstepper, timer]);
+  }, [verifyOtpstepper, securityCodestepper, timer, seconds]);
 
   // Otp state
   const [otp, setOtp] = React.useState("");
@@ -245,7 +251,10 @@ const SecondPart: React.FC = () => {
           </Box>
         ) : (
           <Box>
-            {(signupstepper || !forgetPasswordstepper) && (
+            {(signupstepper ||
+              (!forgetPasswordstepper &&
+                !securityCodestepper &&
+                !allowChangePassword)) && (
               <>
                 <InputLabel sx={{ color: "#b1ae59" }}>Mobile Number</InputLabel>
                 <TextField
@@ -281,7 +290,10 @@ const SecondPart: React.FC = () => {
                 />
               </>
             )}
-            {(signupstepper || !forgetPasswordstepper) && (
+            {(signupstepper ||
+              (!forgetPasswordstepper &&
+                !securityCodestepper &&
+                !allowChangePassword)) && (
               <>
                 <InputLabel sx={{ color: "#b1ae59" }}>Password</InputLabel>
                 <TextField
@@ -346,6 +358,16 @@ const SecondPart: React.FC = () => {
           </Typography>
         </Box>
       )}
+
+      {securityCodestepper && (
+        <Box sx={{ mt: 2 }}>
+          <Typography sx={{ color: "#FFD700" }}>
+            Security Code will expire in: {Math.floor(timer / 60)}:
+            {("0" + (timer % 60)).slice(-2)}
+          </Typography>
+        </Box>
+      )}
+
       {/* Submit Button */}
       <Button
         sx={{
