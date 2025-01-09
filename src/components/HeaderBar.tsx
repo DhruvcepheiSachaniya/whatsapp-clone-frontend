@@ -1,7 +1,9 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
 import { MessageSquare, Settings } from "lucide-react";
+import theme from "../styles/style";
 
 const HeaderBar: React.FC = () => {
+  const issmallscreen = useMediaQuery(theme.breakpoints.down("sm"));
   return (
     <Box
       sx={{
@@ -23,7 +25,7 @@ const HeaderBar: React.FC = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 2,
+          gap: issmallscreen ? 1 : 2,
         }}
       >
         {/* Message Icon with Background */}
@@ -42,7 +44,7 @@ const HeaderBar: React.FC = () => {
         <Typography
           variant="h6"
           sx={{
-            fontSize: "20px", // Good size for header
+            fontSize: issmallscreen ? "15px" : "20px", // Good size for header
             fontFamily: "'Poppins', sans-serif",
             fontWeight: 600,
             color: "#FFFFFF",
@@ -57,7 +59,7 @@ const HeaderBar: React.FC = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          gap: 2, // Add spacing between icon and text
+          gap: issmallscreen ? 1 : 2, // Add spacing between icon and text
         }}
       >
         {/* Settings Icon with Background */}
@@ -76,7 +78,7 @@ const HeaderBar: React.FC = () => {
         </Box>
         <Typography
           sx={{
-            fontSize: "16px", // Slightly smaller font for settings
+            fontSize: issmallscreen ? "15px" : "16px", // Slightly smaller font for settings
             fontFamily: "'Roboto', sans-serif",
             fontWeight: 500,
             color: "#FFFFFF",
