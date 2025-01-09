@@ -5,11 +5,13 @@ import Home from "../components/Home";
 import { Provider } from "react-redux";
 import store from "../redux/store/store";
 import { Toaster } from "react-hot-toast";
+import HomeMainPage from "../components/HomePage/main";
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/homepage" element={<HomeMainPage />} />
     </Routes>
   );
 };
