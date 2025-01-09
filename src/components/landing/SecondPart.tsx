@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { setToken } from "../../redux/slice/userslice";
 import OTP from "../OtpInput";
 import CircularProgress from "@mui/material/CircularProgress";
+import { useNavigate } from "react-router-dom";
 
 const initialState = {
   MobileNumber: "",
@@ -33,6 +34,7 @@ const reducer = (state, action) => {
 const SecondPart: React.FC = () => {
   const [state, formDispatch] = React.useReducer(reducer, initialState);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const signupstepper = useSelector((state) => state.stepper.Signupstepper);
 
   const forgetPasswordstepper = useSelector(
@@ -201,12 +203,15 @@ const SecondPart: React.FC = () => {
           dispatch(setToken(response.data.token));
           toast.success("Login successful!");
           // Redirect to dashboard
+          navigate("/homepage");
         }
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Something went wrong.");
     } finally {
       setLoader(false); //for login button
+      formDispatch({ type: "SET_FIELD", field: "MobileNumber", value: "" });
+      formDispatch({ type: "SET_FIELD", field: "Password", value: "" });
     }
   };
 
