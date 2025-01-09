@@ -1,8 +1,10 @@
-import { Box } from "@mui/material";
+import { Box, useMediaQuery } from "@mui/material";
 import FirstPart from "./FirstPart";
 import SecondPart from "./SecondPart";
+import theme from "../../styles/style";
 
 const LoginPage: React.FC = () => {
+  const issmallscreen = useMediaQuery(theme.breakpoints.down('sm'));//check if screen is mobile view
   return (
     <>
       <Box
@@ -14,9 +16,11 @@ const LoginPage: React.FC = () => {
         }}
       >
         {/* Left: FirstPart */}
-        <Box sx={{ flex: 1 }}>
-          <FirstPart />
-        </Box>
+        {issmallscreen ? null :
+          <Box sx={{ flex: 1 }}>
+            <FirstPart />
+          </Box>
+        }
         {/* Right: SecondPart */}
         <Box sx={{ flex: 1 }}>
           <SecondPart />
