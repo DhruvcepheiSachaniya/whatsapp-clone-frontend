@@ -10,10 +10,11 @@ import {
 } from "../../redux/slice/stepper";
 import axiosInstance from "../networkCalls/axiosinstance";
 import toast from "react-hot-toast";
-import { setToken } from "../../redux/slice/userslice";
+import { setToken, setuserNumber } from "../../redux/slice/userslice";
 import OTP from "../OtpInput";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 
 const initialState = {
   MobileNumber: "",
@@ -199,11 +200,26 @@ const SecondPart: React.FC = () => {
           Password: state.Password,
         });
 
-        if (response.status === 200) {
+        if (response.status === 201) {
+          console.log("login response", response);
           dispatch(setToken(response.data.token));
+          dispatch(setuserNumber(state.MobileNumber));
           toast.success("Login successful!");
+
           // Redirect to dashboard
           navigate("/homepage");
+
+          // Handle socket here
+          // const socket = io("http://localhost:8080");
+
+          // socket.on("connect", () => {
+          //   const socketId = socket.id;
+          //   console.log("Connected with socket ID:", socketId);
+          // });
+
+          // socket.on("disconnect", () => {
+          //   console.log("Socket disconnected");
+          // });
         }
       }
     } catch (error: any) {

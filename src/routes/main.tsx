@@ -5,7 +5,7 @@ import Home from "../components/Home";
 import { Provider } from "react-redux";
 import store from "../redux/store/store";
 import { Toaster } from "react-hot-toast";
-import HomeMainPage from "../components/HomePage/main";
+import HomeMainPage from "../components/HomePage/Homemain";
 
 const AppRoutes: React.FC = () => {
   return (
