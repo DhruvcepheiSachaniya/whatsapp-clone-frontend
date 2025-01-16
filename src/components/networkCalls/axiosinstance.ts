@@ -27,7 +27,12 @@ axiosInstance.interceptors.request.use(
 //response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
-    return response;
+    //TODO:- SOlve the issue of resonse and resopnse.data login get response and other get response.data
+    if (response.config.returnFullResponse) {
+      return response;
+    }
+
+    return response.data;
   },
   (error) => {
     return Promise.reject(error);

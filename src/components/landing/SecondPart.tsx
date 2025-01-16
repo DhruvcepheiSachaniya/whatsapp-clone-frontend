@@ -195,31 +195,24 @@ const SecondPart: React.FC = () => {
       } else {
         // Login API
         setLoader(true);
-        const response = await axiosInstance.post("/auth/user", {
-          MobileNumber: state.MobileNumber,
-          Password: state.Password,
-        });
+        const response = await axiosInstance.post(
+          "/auth/user",
+          {
+            MobileNumber: state.MobileNumber,
+            Password: state.Password,
+          },
+          {
+            returnFullResponse: true,
+          }
+        );
 
         if (response.status === 201) {
-          console.log("login response", response);
           dispatch(setToken(response.data.token));
           dispatch(setuserNumber(state.MobileNumber));
           toast.success("Login successful!");
 
           // Redirect to dashboard
           navigate("/homepage");
-
-          // Handle socket here
-          // const socket = io("http://localhost:8080");
-
-          // socket.on("connect", () => {
-          //   const socketId = socket.id;
-          //   console.log("Connected with socket ID:", socketId);
-          // });
-
-          // socket.on("disconnect", () => {
-          //   console.log("Socket disconnected");
-          // });
         }
       }
     } catch (error: any) {

@@ -14,8 +14,8 @@ const HomeMainPage: React.FC = () => {
   const [receivedMessage, setReceivedMessage] = useState<string>("");
   const [toUserId, setToUserId] = useState<string>("");
 
-  const usernumber = useSelector((state: RootState) => state.user.usernumber);
-
+  const usernumber = useSelector((state: any) => state.user.userNumber);
+  console.log(usernumber);
   useEffect(() => {
     // Establish WebSocket connection
     const newSocket = io(SOCKET_SERVER_URL);
@@ -58,6 +58,7 @@ const HomeMainPage: React.FC = () => {
   return (
     <>
       <HeaderBar />
+      {/* implement firstchat and secondcaht here */}
       <Box
         sx={{
           display: "flex",
