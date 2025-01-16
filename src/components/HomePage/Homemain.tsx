@@ -58,6 +58,7 @@ const HomeMainPage: React.FC = () => {
   return (
     <>
       <HeaderBar />
+      {/* implement firstchat and secondcaht here */}
       <Box
         sx={{
           display: "flex",
