@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import HeaderBar from "../HeaderBar";
 import { Typography, TextField, Button, Box } from "@mui/material";
 import { io, Socket } from "socket.io-client";
-import { RootState } from "@reduxjs/toolkit/query";
 import { useSelector } from "react-redux";
+import FirstChatPart from "./FirstChatPart";
+import SecondChatPart from "./SecondChatPart";
 
 // URL of your WebSocket server
 const SOCKET_SERVER_URL = "http://localhost:8080";
@@ -15,29 +16,29 @@ const HomeMainPage: React.FC = () => {
   const [toUserId, setToUserId] = useState<string>("");
 
   const usernumber = useSelector((state: any) => state.user.userNumber);
-  console.log(usernumber);
-  useEffect(() => {
-    // Establish WebSocket connection
-    const newSocket = io(SOCKET_SERVER_URL);
 
-    // Store socket instance in state
-    setSocket(newSocket);
+  // useEffect(() => {
+  //   // Establish WebSocket connection
+  //   const newSocket = io(SOCKET_SERVER_URL);
 
-    // Send user ID to the backend to register the socket
-    newSocket.emit("register", { userId: usernumber }); // Replace "user123" with actual user ID
+  //   // Store socket instance in state
+  //   setSocket(newSocket);
 
-    // Listen for incoming private messages
-    newSocket.on(
-      "privateMessage",
-      (data: { from: string; message: string }) => {
-        setReceivedMessage(`Message from ${data.from}: ${data.message}`);
-      }
-    );
+  //   // Send user ID to the backend to register the socket
+  //   newSocket.emit("register", { userId: usernumber }); // Replace "user123" with actual user ID
 
-    return () => {
-      newSocket.disconnect(); // Clean up connection when component unmounts
-    };
-  }, [usernumber]);
+  //   // Listen for incoming private messages
+  //   newSocket.on(
+  //     "privateMessage",
+  //     (data: { from: string; message: string }) => {
+  //       setReceivedMessage(`Message from ${data.from}: ${data.message}`);
+  //     }
+  //   );
+
+  //   return () => {
+  //     newSocket.disconnect(); // Clean up connection when component unmounts
+  //   };
+  // }, [usernumber]);
 
   const sendMessage = () => {
     if (!toUserId || !message) {
@@ -60,6 +61,24 @@ const HomeMainPage: React.FC = () => {
       <HeaderBar />
       {/* implement firstchat and secondcaht here */}
       <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          height: "calc(100vh - 48px)", // Full height minus the header
+          marginTop: "48px", // Match header height
+          padding: "2rem", //to make look like center
+        }}
+      >
+        <Box sx={{ flex: 1, width: "30%" }}>
+          <FirstChatPart />
+        </Box>
+        <Box sx={{ width: "70%" }}>
+          <SecondChatPart />
+        </Box>
+      </Box>
+
+      {/* implemented socket code */}
+      {/* <Box
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -87,7 +106,7 @@ const HomeMainPage: React.FC = () => {
         <Typography variant="body1" style={{ marginTop: "20px" }}>
           {receivedMessage || "No messages yet"}
         </Typography>
-      </Box>
+      </Box> */}
     </>
   );
 };

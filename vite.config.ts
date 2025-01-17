@@ -8,5 +8,7 @@ export default defineConfig({
     host: "0.0.0.0", // Listen on all interfaces
     port: 5173, // Default port, can be changed if needed
   },
+  css: {
+    postcss: "./postcss.config.js",
+  },
 });
-

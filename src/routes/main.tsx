@@ -7,6 +7,7 @@ import store, { persistor } from "../redux/store/store";
 import { Toaster } from "react-hot-toast";
 import HomeMainPage from "../components/HomePage/Homemain";
 import { PersistGate } from "redux-persist/integration/react";
+import "../App.css";
 
 const AppRoutes: React.FC = () => {
   return (
