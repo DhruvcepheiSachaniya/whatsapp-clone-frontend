@@ -10,6 +10,9 @@ import SecondChatPart from "./SecondChatPart";
 const SOCKET_SERVER_URL = "http://localhost:8080";
 
 const HomeMainPage: React.FC = () => {
+  //TODO1:- Able to search only those in contacts and as well as in all, 
+  //TODO2:- onclick it should show the chat, 
+  //TODO3:- able to chat with, 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [message, setMessage] = useState<string>("");
   const [receivedMessage, setReceivedMessage] = useState<string>("");
@@ -69,7 +72,7 @@ const HomeMainPage: React.FC = () => {
           padding: "2rem", //to make look like center
         }}
       >
-        <Box sx={{ flex: 1, width: "30%" }}>
+        <Box sx={{ width: "30%" }}>
           <FirstChatPart />
         </Box>
         <Box sx={{ width: "70%" }}>

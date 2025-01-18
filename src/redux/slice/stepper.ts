@@ -8,6 +8,7 @@ export const steperSlice = createSlice({
     ForgetPasswordstepper: false,
     SecurityCodestepper: false,
     AllowChangePassword: false,
+    chatAreastepper: false,
   },
   reducers: {
     setSignupstepper: (state, action) => {
@@ -25,6 +26,9 @@ export const steperSlice = createSlice({
     setAllowChangePassword: (state, action) => {
       state.AllowChangePassword = action.payload;
     },
+    setChatAreastepper: (state, action) => {
+      state.chatAreastepper = action.payload;
+    },
   },
 });
 
@@ -34,6 +38,7 @@ export const {
   setForgetPasswordstepper,
   setSecurityCodestepper,
   setAllowChangePassword,
+  setChatAreastepper,
 } = steperSlice.actions;
 
 export default steperSlice.reducer;
