@@ -3,6 +3,7 @@ import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import userReducer from "../slice/userslice";
 import stepperReducer from "../slice/stepper";
+import chatReducer from "../slice/chatstepper";
 
 // Persist configuration for the user slice
 const userPersistConfig = {
@@ -17,6 +18,7 @@ const store = configureStore({
   reducer: {
     user: persistedUserReducer, // Persisted
     stepper: stepperReducer, // Not persisted
+    chat: chatReducer, // Not persisted
   },
 });
 

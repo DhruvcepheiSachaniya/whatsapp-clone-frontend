@@ -1,9 +1,61 @@
 import { Box, Button, Typography } from "@mui/material";
 import { MessageSquare } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+// import { setChatAreastepper, setcurrentUserSocketId } from "./chatSlice"; // Assuming your Redux actions are defined here
 
 const SecondChatPart = () => {
-  const chatareastepper = useSelector((state: any) => state.stepper.chatAreastepper);
+  const [message, setMessage] = useState<string>("");
+  const [messages, setMessages] = useState<any[]>([]);
+  const dispatch = useDispatch();
+
+  const chatareastepper = useSelector(
+    (state: any) => state.stepper.chatAreastepper
+  );
+
+  const currentSocketId = useSelector(
+    (state: any) => state.chat.currentUserSocketId
+  );
+
+  const socket = useSelector((state: any) => state.chat.soket);
+
+  // Listen for incoming messages
+  // Listen for incoming messages with cleanup to avoid duplicate handlers
+  useEffect(() => {
+    if (socket) {
+      const messageHandler = (msg) => {
+        setMessages((prevMessages) => [...prevMessages, msg]);
+      };
+
+      // Add event listener
+      socket.on("privateMessageReceived", messageHandler);
+
+      // Cleanup function to remove the event listener
+      return () => {
+        socket.off("privateMessageReceived", messageHandler);
+      };
+    }
+  }, [socket]);
+
+  // Send message
+  const sendMessage = () => {
+    if (!currentSocketId || !message) {
+      console.log("Recipient ID or message is empty");
+      return;
+    }
+    if (socket) {
+      const msg = {
+        toUserId: currentSocketId,
+        message,
+      };
+      socket.emit("privateMessage", msg);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { ...msg, fromSelf: true },
+      ]);
+      setMessage(""); // Clear input
+    }
+  };
 
   return (
     <Box
@@ -35,42 +87,27 @@ const SecondChatPart = () => {
               gap: "1rem",
             }}
           >
-            {Array(10)
-              .fill("Box")
-              .map((_, index) => (
-                <Box key={index} className="chat chat-start">
-                  <div className="chat-image avatar">
-                    <div className="w-10 rounded-full">
-                      <img
-                        alt="Tailwind CSS chat bubble component"
-                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                      />
-                    </div>
+            {messages.map((msg, index) => (
+              <Box
+                key={index}
+                className={`chat ${msg.fromSelf ? "chat-end" : "chat-start"}`}
+              >
+                <div className="chat-image avatar">
+                  <div className="w-10 rounded-full">
+                    <img
+                      alt="Avatar"
+                      src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                    />
                   </div>
-                  <div className="chat-header">
-                    Obi-Wan Kenobi
-                    <time className="text-xs opacity-50">12:45</time>
-                  </div>
-                  <div className="chat-bubble">You were the Chosen One!</div>
-                  <div className="chat-footer opacity-50">Delivered</div>
-                </Box>
-              ))}
-            <Box className="chat chat-end">
-              <div className="chat-image avatar">
-                <div className="w-10 rounded-full">
-                  <img
-                    alt="Tailwind CSS chat bubble component"
-                    src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                  />
                 </div>
-              </div>
-              <div className="chat-header">
-                You
-                <time className="text-xs opacity-50">12:46</time>
-              </div>
-              <div className="chat-bubble">I hate you!</div>
-              <div className="chat-footer opacity-50">Seen at 12:46</div>
-            </Box>
+                <div className="chat-header">
+                  {msg.fromSelf ? "You" : "Other User"}
+                  <time className="text-xs opacity-50">12:46</time>
+                </div>
+                <div className="chat-bubble">{msg.message}</div>
+                <div className="chat-footer opacity-50">Delivered</div>
+              </Box>
+            ))}
           </Box>
           <Box
             sx={{
@@ -81,8 +118,16 @@ const SecondChatPart = () => {
               backgroundColor: "#51344F",
             }}
           >
-            <input type="text" placeholder="Type here" className="input input-bordered w-full" />
-            <Button variant="contained">Send</Button>
+            <input
+              type="text"
+              placeholder="Type here"
+              className="input input-bordered w-full"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            <Button variant="contained" onClick={sendMessage}>
+              Send
+            </Button>
           </Box>
         </Box>
       ) : (
@@ -127,7 +172,8 @@ const SecondChatPart = () => {
               lineHeight: 1.5,
             }}
           >
-            Connect with friends, share moments, and stay in touch with your loved ones.
+            Connect with friends, share moments, and stay in touch with your
+            loved ones.
           </Typography>
         </Box>
       )}

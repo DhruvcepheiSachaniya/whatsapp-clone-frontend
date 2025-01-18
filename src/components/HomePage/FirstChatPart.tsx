@@ -1,9 +1,68 @@
 import { Typography, Box } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { setChatAreastepper } from "../../redux/slice/stepper";
+import { io, Socket } from "socket.io-client";
+import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import {
+  setcurrentUserSocketId,
+  setonlineUsers,
+  setsoket,
+} from "../../redux/slice/chatstepper";
+
+// URL of your WebSocket server
+const SOCKET_SERVER_URL = "http://localhost:8080";
 
 const FirstChatPart = () => {
-const dispatch = useDispatch();
+  //TODO:- Panding Search bar
+  //TODO:- get whose are online from contacts
+  const dispatch = useDispatch();
+
+  //socket logic
+  // const [socket, setSocket] = useState<Socket | null>(null);
+  // const [message, setMessage] = useState<string>("");
+  const [receivedMessage, setReceivedMessage] = useState<string>("");
+  // const [toUserId, setToUserId] = useState<string>("");
+
+  const usernumber = useSelector((state: any) => state.user.userNumber);
+  const onlineUsers = useSelector((state: any) => state.chat.onlineUsers);
+
+  useEffect(() => {
+    // Establish WebSocket connection
+    const newSocket = io(SOCKET_SERVER_URL);
+
+    // Store socket instance in state
+    // setSocket(newSocket);
+    dispatch(setsoket(newSocket));
+
+    // Send user ID to the backend to register the socket
+    newSocket.emit("register", { userId: usernumber }); // Replace "user123" with actual user ID
+
+    // get all online users
+    newSocket.on("userList", (users) => {
+      // console.log("Online users:", users);
+      // track online users
+      dispatch(setonlineUsers(users));
+    });
+
+    // Listen for incoming private messages
+    newSocket.on(
+      "privateMessage",
+      (data: { from: string; message: string }) => {
+        setReceivedMessage(`Message from ${data.from}: ${data.message}`);
+      }
+    );
+
+    return () => {
+      newSocket.disconnect(); // Clean up connection when component unmounts
+    };
+  }, [usernumber, dispatch]);
+
+  //filter logged in user from onlineuser list
+  const filterdOnlineUsers = Object.keys(onlineUsers).filter(
+    (userId) => userId !== usernumber
+  );
+
   return (
     <Box
       sx={{
@@ -47,7 +106,35 @@ const dispatch = useDispatch();
           flex: 1, // Ensures this section takes the remaining height
         }}
       >
-        {Array(19)
+        {filterdOnlineUsers.map((userId) => (
+          <Box
+            //onclick show send chat and set current user socketid
+            onClick={() => (
+              dispatch(setChatAreastepper(true)),
+              dispatch(setcurrentUserSocketId(userId))
+            )}
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "10px",
+              marginBottom: "1rem",
+              cursor: "pointer",
+            }}
+          >
+            <Box>
+              <div className="avatar online h-10 w-10">
+                <div className="w-24 rounded-full">
+                  <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                </div>
+              </div>
+            </Box>
+            <Box>
+              <Typography>{userId}</Typography>
+              <Typography>Hey! How are you?</Typography>
+            </Box>
+          </Box>
+        ))}
+        {/* {Array(19)
           .fill("Box")
           .map((_, index) => (
             <Box
@@ -74,7 +161,7 @@ const dispatch = useDispatch();
                 <Typography>Hey! How are you?</Typography>
               </Box>
             </Box>
-          ))}
+          ))} */}
       </Box>
     </Box>
   );
