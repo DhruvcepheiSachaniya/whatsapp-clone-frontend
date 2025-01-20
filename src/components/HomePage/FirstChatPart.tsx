@@ -21,42 +21,30 @@ const FirstChatPart = () => {
   //socket logic
   // const [socket, setSocket] = useState<Socket | null>(null);
   // const [message, setMessage] = useState<string>("");
-  const [receivedMessage, setReceivedMessage] = useState<string>("");
   // const [toUserId, setToUserId] = useState<string>("");
 
   const usernumber = useSelector((state: any) => state.user.userNumber);
   const onlineUsers = useSelector((state: any) => state.chat.onlineUsers);
 
   useEffect(() => {
-    // Establish WebSocket connection
+    if (!usernumber) return; // Ensure usernumber is available before connecting
+
     const newSocket = io(SOCKET_SERVER_URL);
 
-    // Store socket instance in state
-    // setSocket(newSocket);
+    if (!newSocket) return;
     dispatch(setsoket(newSocket));
 
-    // Send user ID to the backend to register the socket
-    newSocket.emit("register", { userId: usernumber }); // Replace "user123" with actual user ID
+    newSocket.emit("register", { userId: usernumber });
 
-    // get all online users
+    // Set up listeners
     newSocket.on("userList", (users) => {
-      // console.log("Online users:", users);
-      // track online users
       dispatch(setonlineUsers(users));
     });
 
-    // Listen for incoming private messages
-    newSocket.on(
-      "privateMessage",
-      (data: { from: string; message: string }) => {
-        setReceivedMessage(`Message from ${data.from}: ${data.message}`);
-      }
-    );
-
     return () => {
-      newSocket.disconnect(); // Clean up connection when component unmounts
+      newSocket.disconnect();
     };
-  }, [usernumber, dispatch]);
+  }, [usernumber, dispatch]); // Only reconnect when usernumber changes
 
   //filter logged in user from onlineuser list
   const filterdOnlineUsers = Object.keys(onlineUsers).filter(

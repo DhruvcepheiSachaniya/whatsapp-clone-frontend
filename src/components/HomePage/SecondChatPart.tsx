@@ -7,7 +7,9 @@ import { useSelector, useDispatch } from "react-redux";
 const SecondChatPart = () => {
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<any[]>([]);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
+
+  console.log(messages);
 
   const chatareastepper = useSelector(
     (state: any) => state.stepper.chatAreastepper
@@ -24,18 +26,19 @@ const SecondChatPart = () => {
   useEffect(() => {
     if (socket) {
       const messageHandler = (msg) => {
-        setMessages((prevMessages) => [...prevMessages, msg]);
+        // Prevent adding the same message twice
+        if (!messages.some((message) => message.message === msg.message)) {
+          setMessages((prevMessages) => [...prevMessages, msg]);
+        }
       };
 
-      // Add event listener
       socket.on("privateMessageReceived", messageHandler);
 
-      // Cleanup function to remove the event listener
       return () => {
         socket.off("privateMessageReceived", messageHandler);
       };
     }
-  }, [socket]);
+  }, [socket, messages]);
 
   // Send message
   const sendMessage = () => {
