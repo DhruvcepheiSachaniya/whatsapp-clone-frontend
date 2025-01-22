@@ -1,9 +1,11 @@
 import { Box, Typography, useMediaQuery } from "@mui/material";
-import { MessageSquare, Settings } from "lucide-react";
+import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 import theme from "../styles/style";
 
 const HeaderBar: React.FC = () => {
   const issmallscreen = useMediaQuery(theme.breakpoints.down("sm"));
+  //TODO:- ON / settings option only
+  //TODO:- ON /homepage settings, profile, logout option
   return (
     <Box
       sx={{
@@ -62,35 +64,116 @@ const HeaderBar: React.FC = () => {
           gap: issmallscreen ? 1 : 2, // Add spacing between icon and text
         }}
       >
-        {/* Settings Icon with Background */}
-        <Box
-          sx={{
+        <Box sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          cursor: "pointer",
+        }}>
+          {/* Settings Icon with Background */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#b1ae59", // Light background for icon
+              borderRadius: "50%", // Circular background
+              padding: "6px", // Adjust padding for the circle
+              flexShrink: 0, // Prevent shrinking
+            }}
+          >
+            <User size={10} color="#70486d"/>
+          </Box>
+          <Typography
+            sx={{
+              fontSize: issmallscreen ? "15px" : "16px", // Slightly smaller font for settings
+              fontFamily: "'Roboto', sans-serif",
+              fontWeight: 500,
+              color: "#FFFFFF",
+              whiteSpace: "nowrap", // Prevent text from wrapping
+              overflow: "visible", // Ensure full text visibility
+              textOverflow: "clip", // Avoid ellipsis if there’s space
+              flexShrink: 0,
+              // marginRight: "2rem", // Prevent the text from shrinking
+            }}
+          >
+            Profile
+          </Typography>
+        </Box>
+        <Box sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          cursor: "pointer",
+        }}>
+          {/* Settings Icon with Background */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#b1ae59", // Light background for icon
+              borderRadius: "50%", // Circular background
+              padding: "6px", // Adjust padding for the circle
+              flexShrink: 0, // Prevent shrinking
+            }}
+          >
+            <Settings size={10} color="#70486d" />
+          </Box>
+          <Typography
+            sx={{
+              fontSize: issmallscreen ? "15px" : "16px", // Slightly smaller font for settings
+              fontFamily: "'Roboto', sans-serif",
+              fontWeight: 500,
+              color: "#FFFFFF",
+              whiteSpace: "nowrap", // Prevent text from wrapping
+              overflow: "visible", // Ensure full text visibility
+              textOverflow: "clip", // Avoid ellipsis if there’s space
+              flexShrink: 0,
+              // marginRight: "2rem", // Prevent the text from shrinking
+            }}
+          >
+            Settings
+          </Typography>
+          {/* logout button */}
+          <Box sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#b1ae59", // Light background for icon
-            borderRadius: "50%", // Circular background
-            padding: "6px", // Adjust padding for the circle
-            flexShrink: 0, // Prevent shrinking
-          }}
-        >
-          <Settings size={20} color="#70486d" />
+            gap: 1,
+            cursor: "pointer",
+          }}>
+            {/* Settings Icon with Background */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#b1ae59", // Light background for icon
+                borderRadius: "50%", // Circular background
+                padding: "6px", // Adjust padding for the circle
+                flexShrink: 0, // Prevent shrinking
+              }}
+            >
+              {/* <Settings size={20} color="#70486d" /> */}
+              <LogOut size={10} color="#70486d" />
+            </Box>
+            <Typography
+              sx={{
+                fontSize: issmallscreen ? "15px" : "16px", // Slightly smaller font for settings
+                fontFamily: "'Roboto', sans-serif",
+                fontWeight: 500,
+                color: "#FFFFFF",
+                whiteSpace: "nowrap", // Prevent text from wrapping
+                overflow: "visible", // Ensure full text visibility
+                textOverflow: "clip", // Avoid ellipsis if there’s space
+                flexShrink: 0,
+                // marginRight: "2rem", // Prevent the text from shrinking
+              }}
+            >
+              Logout
+            </Typography>
+          </Box>
         </Box>
-        <Typography
-          sx={{
-            fontSize: issmallscreen ? "15px" : "16px", // Slightly smaller font for settings
-            fontFamily: "'Roboto', sans-serif",
-            fontWeight: 500,
-            color: "#FFFFFF",
-            whiteSpace: "nowrap", // Prevent text from wrapping
-            overflow: "visible", // Ensure full text visibility
-            textOverflow: "clip", // Avoid ellipsis if there’s space
-            flexShrink: 0,
-            marginRight: "2rem", // Prevent the text from shrinking
-          }}
-        >
-          Settings
-        </Typography>
       </Box>
     </Box>
   );
