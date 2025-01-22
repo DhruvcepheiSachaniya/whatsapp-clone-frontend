@@ -26,10 +26,15 @@ const SecondChatPart = () => {
   useEffect(() => {
     if (socket) {
       const messageHandler = (msg) => {
-        // Prevent adding the same message twice
-        if (!messages.some((message) => message.message === msg.message)) {
-          setMessages((prevMessages) => [...prevMessages, msg]);
-        }
+        setMessages((prevMessages) => {
+          // Check for duplicates using `timestamp`
+          if (
+            !prevMessages.some((message) => message.timestamp === msg.timestamp)
+          ) {
+            return [...prevMessages, msg];
+          }
+          return prevMessages;
+        });
       };
 
       socket.on("privateMessageReceived", messageHandler);
@@ -38,7 +43,7 @@ const SecondChatPart = () => {
         socket.off("privateMessageReceived", messageHandler);
       };
     }
-  }, [socket, messages]);
+  }, [socket]);
 
   // Send message
   const sendMessage = () => {
@@ -50,12 +55,17 @@ const SecondChatPart = () => {
       const msg = {
         toUserId: currentSocketId,
         message,
+        timestamp: Date.now(), // Add timestamp
       };
+
       socket.emit("privateMessage", msg);
+
+      // Add the message to the sender's local state
       setMessages((prevMessages) => [
         ...prevMessages,
         { ...msg, fromSelf: true },
       ]);
+
       setMessage(""); // Clear input
     }
   };
