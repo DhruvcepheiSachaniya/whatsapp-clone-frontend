@@ -25,7 +25,7 @@ const FirstChatPart = () => {
 
   const usernumber = useSelector((state: any) => state.user.userNumber);
   const onlineUsers = useSelector((state: any) => state.chat.onlineUsers);
-  console.log("onlineUsers", onlineUsers); 
+  // console.log("onlineUsers", onlineUsers);
 
   // useEffect(() => {
   //   if (!usernumber) return; // Ensure usernumber is available before connecting

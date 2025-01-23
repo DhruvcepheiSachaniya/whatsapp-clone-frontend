@@ -8,7 +8,20 @@ const SecondChatPart = () => {
   const { socket } = useSocket();
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<any[]>([]);
-  const chatareastepper = useSelector((state: any) => state.stepper.chatAreastepper);
+  const chatareastepper = useSelector(
+    (state: any) => state.stepper.chatAreastepper
+  );
+  const currentSocketId = useSelector(
+    (state: any) => state.chat.currentUserSocketId
+  );
+
+  //testing
+  useEffect(() => {
+    console.log("SecondChatPart mounted.");
+    return () => {
+      console.log("SecondChatPart unmounted.");
+    };
+  }, []);
 
   // Listen for incoming private messages
   useEffect(() => {
@@ -17,24 +30,31 @@ const SecondChatPart = () => {
       return;
     }
 
-    const messageHandler = (msg: any) => {
-      console.log("Received message:", msg);
+    const messageHandler = (msg) => {
       setMessages((prevMessages) => {
-        if (!prevMessages.some((message) => message.timestamp === msg.timestamp)) {
+        // Check for duplicates based on timestamp and sender
+        const isDuplicate = prevMessages.some(
+          (message) =>
+            message.timestamp === msg.timestamp && message.from === msg.from
+        );
+        if (!isDuplicate) {
+          console.log("Adding message:", msg);
           return [...prevMessages, msg];
         }
+        console.log("Duplicate message ignored:", msg);
         return prevMessages;
       });
     };
 
     console.log("Attaching message listener...");
+    socket.off("privateMessageReceived");
     socket.on("privateMessageReceived", messageHandler);
 
     return () => {
       console.log("Cleaning up message listener...");
       socket.off("privateMessageReceived", messageHandler);
     };
-  }, []);
+  }, [socket]);
 
   // Send a message
   const sendMessage = () => {
@@ -44,7 +64,8 @@ const SecondChatPart = () => {
     }
 
     const msg = {
-      toUserId: "recipient-id", // Replace with actual recipient ID
+      toUserId: currentSocketId,
+      from: socket.id, // Replace with actual recipient ID
       message,
       timestamp: Date.now(),
     };
@@ -104,7 +125,7 @@ const SecondChatPart = () => {
                   </div>
                 </div>
                 <div className="chat-header">
-                  {msg.fromSelf ? "You" : "Other User"}
+                  {msg.fromSelf ? "You" : msg.from_number}
                   <time className="text-xs opacity-50">12:46</time>
                 </div>
                 <div className="chat-bubble">{msg.message}</div>
