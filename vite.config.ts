@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: "0.0.0.0", // Listen on all interfaces
-    port: 5173, // Default port, can be changed if needed
+    port: 5177, // Default port, can be changed if needed
   },
   css: {
     postcss: "./postcss.config.js",
