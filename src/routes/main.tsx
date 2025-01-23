@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import HomeMainPage from "../components/HomePage/Homemain";
 import { PersistGate } from "redux-persist/integration/react";
 import "../App.css";
+import { SocketProvider } from "../components/HomePage/socket";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -22,7 +23,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
+  <SocketProvider>
         <AppRoutes />
+    </ SocketProvider>
       </PersistGate>
       <Toaster position="top-center" reverseOrder={false} />
     </Provider>

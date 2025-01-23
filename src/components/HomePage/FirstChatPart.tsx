@@ -25,26 +25,27 @@ const FirstChatPart = () => {
 
   const usernumber = useSelector((state: any) => state.user.userNumber);
   const onlineUsers = useSelector((state: any) => state.chat.onlineUsers);
+  console.log("onlineUsers", onlineUsers); 
 
-  useEffect(() => {
-    if (!usernumber) return; // Ensure usernumber is available before connecting
+  // useEffect(() => {
+  //   if (!usernumber) return; // Ensure usernumber is available before connecting
 
-    const newSocket = io(SOCKET_SERVER_URL);
+  //   const newSocket = io(SOCKET_SERVER_URL);
 
-    if (!newSocket) return;
-    dispatch(setsoket(newSocket));
+  //   if (!newSocket) return;
+  //   dispatch(setsoket(newSocket));
 
-    newSocket.emit("register", { userId: usernumber });
+  //   newSocket.emit("register", { userId: usernumber });
 
-    // Set up listeners
-    newSocket.on("userList", (users) => {
-      dispatch(setonlineUsers(users));
-    });
+  //   // Set up listeners
+  //   newSocket.on("userList", (users) => {
+  //     dispatch(setonlineUsers(users));
+  //   });
 
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [usernumber, dispatch]); // Only reconnect when usernumber changes
+  //   return () => {
+  //     newSocket.disconnect();
+  //   };
+  // }, [usernumber, dispatch]); // Only reconnect when usernumber changes
 
   //filter logged in user from onlineuser list
   const filterdOnlineUsers = Object.keys(onlineUsers).filter(

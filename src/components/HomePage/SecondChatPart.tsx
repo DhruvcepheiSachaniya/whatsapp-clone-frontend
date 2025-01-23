@@ -1,73 +1,63 @@
 import { Box, Button, Typography } from "@mui/material";
 import { MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-// import { setChatAreastepper, setcurrentUserSocketId } from "./chatSlice"; // Assuming your Redux actions are defined here
+import { useSocket } from "./socket";
+import { useSelector } from "react-redux";
 
 const SecondChatPart = () => {
+  const { socket } = useSocket();
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<any[]>([]);
-  // const dispatch = useDispatch();
+  const chatareastepper = useSelector((state: any) => state.stepper.chatAreastepper);
 
-  console.log(messages);
-
-  const chatareastepper = useSelector(
-    (state: any) => state.stepper.chatAreastepper
-  );
-
-  const currentSocketId = useSelector(
-    (state: any) => state.chat.currentUserSocketId
-  );
-
-  const socket = useSelector((state: any) => state.chat.soket);
-
-  // Listen for incoming messages
-  // Listen for incoming messages with cleanup to avoid duplicate handlers
+  // Listen for incoming private messages
   useEffect(() => {
-    if (socket) {
-      const messageHandler = (msg) => {
-        setMessages((prevMessages) => {
-          // Check for duplicates using `timestamp`
-          if (
-            !prevMessages.some((message) => message.timestamp === msg.timestamp)
-          ) {
-            return [...prevMessages, msg];
-          }
-          return prevMessages;
-        });
-      };
-
-      socket.on("privateMessageReceived", messageHandler);
-
-      return () => {
-        socket.off("privateMessageReceived", messageHandler);
-      };
-    }
-  }, [socket]);
-
-  // Send message
-  const sendMessage = () => {
-    if (!currentSocketId || !message) {
-      console.log("Recipient ID or message is empty");
+    if (!socket) {
+      console.log("Socket instance not available yet.");
       return;
     }
-    if (socket) {
-      const msg = {
-        toUserId: currentSocketId,
-        message,
-        timestamp: Date.now(), // Add timestamp
-      };
 
-      socket.emit("privateMessage", msg);
+    const messageHandler = (msg: any) => {
+      console.log("Received message:", msg);
+      setMessages((prevMessages) => {
+        if (!prevMessages.some((message) => message.timestamp === msg.timestamp)) {
+          return [...prevMessages, msg];
+        }
+        return prevMessages;
+      });
+    };
 
-      // Add the message to the sender's local state
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { ...msg, fromSelf: true },
-      ]);
+    console.log("Attaching message listener...");
+    socket.on("privateMessageReceived", messageHandler);
 
-      setMessage(""); // Clear input
+    return () => {
+      console.log("Cleaning up message listener...");
+      socket.off("privateMessageReceived", messageHandler);
+    };
+  }, []);
+
+  // Send a message
+  const sendMessage = () => {
+    if (!socket || !message) {
+      console.log("Socket or message is missing.");
+      return;
     }
+
+    const msg = {
+      toUserId: "recipient-id", // Replace with actual recipient ID
+      message,
+      timestamp: Date.now(),
+    };
+
+    console.log("Sending message:", msg);
+    socket.emit("privateMessage", msg);
+
+    // Add message to local state
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { ...msg, fromSelf: true },
+    ]);
+    setMessage(""); // Clear input field
   };
 
   return (
