@@ -15,14 +15,6 @@ const SecondChatPart = () => {
     (state: any) => state.chat.currentUserSocketId
   );
 
-  //testing
-  useEffect(() => {
-    console.log("SecondChatPart mounted.");
-    return () => {
-      console.log("SecondChatPart unmounted.");
-    };
-  }, []);
-
   // Listen for incoming private messages
   useEffect(() => {
     if (!socket) {
@@ -30,7 +22,7 @@ const SecondChatPart = () => {
       return;
     }
 
-    const messageHandler = (msg) => {
+    const messageHandler = (msg: any) => {
       setMessages((prevMessages) => {
         // Check for duplicates based on timestamp and sender
         const isDuplicate = prevMessages.some(
@@ -38,20 +30,16 @@ const SecondChatPart = () => {
             message.timestamp === msg.timestamp && message.from === msg.from
         );
         if (!isDuplicate) {
-          console.log("Adding message:", msg);
           return [...prevMessages, msg];
         }
-        console.log("Duplicate message ignored:", msg);
         return prevMessages;
       });
     };
 
-    console.log("Attaching message listener...");
     socket.off("privateMessageReceived");
     socket.on("privateMessageReceived", messageHandler);
 
     return () => {
-      console.log("Cleaning up message listener...");
       socket.off("privateMessageReceived", messageHandler);
     };
   }, [socket]);
@@ -65,12 +53,11 @@ const SecondChatPart = () => {
 
     const msg = {
       toUserId: currentSocketId,
-      from: socket.id, // Replace with actual recipient ID
+      from: socket.id,
       message,
       timestamp: Date.now(),
     };
 
-    console.log("Sending message:", msg);
     socket.emit("privateMessage", msg);
 
     // Add message to local state
@@ -101,6 +88,29 @@ const SecondChatPart = () => {
             overflow: "hidden",
           }}
         >
+          {/* chat area header */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "10px",
+              marginTop: "0.5rem",
+              cursor: "pointer",
+              borderBottom: "1px solid #70486d",
+            }}
+          >
+            <Box>
+              <div className="avatar h-10 w-10">
+                <div className="w-24 rounded-full">
+                  <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                </div>
+              </div>
+            </Box>
+            <Box>
+              <Typography>{currentSocketId}</Typography>
+              <Typography>online</Typography>
+            </Box>
+          </Box>
           <Box
             sx={{
               flex: 1,

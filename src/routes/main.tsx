@@ -1,33 +1,19 @@
-import React from "react";
 import ReactDOM from "react-dom";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Home from "../components/Home";
 import { Provider } from "react-redux";
 import store, { persistor } from "../redux/store/store";
 import { Toaster } from "react-hot-toast";
-import HomeMainPage from "../components/HomePage/Homemain";
 import { PersistGate } from "redux-persist/integration/react";
 import "../App.css";
 import { SocketProvider } from "../components/HomePage/socket";
-
-const AppRoutes: React.FC = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/homepage" element={<HomeMainPage />} />
-    </Routes>
-  );
-};
+import AppRoutes from "./App";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-  <SocketProvider>
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <SocketProvider>
         <AppRoutes />
-    </ SocketProvider>
-      </PersistGate>
-      <Toaster position="top-center" reverseOrder={false} />
-    </Provider>
-  </BrowserRouter>
+      </SocketProvider>
+    </PersistGate>
+    <Toaster position="top-center" reverseOrder={false} />
+  </Provider>
 );

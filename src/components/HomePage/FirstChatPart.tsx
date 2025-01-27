@@ -1,30 +1,56 @@
 import { Typography, Box } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { setChatAreastepper } from "../../redux/slice/stepper";
-import { io, Socket } from "socket.io-client";
+// import { io, Socket } from "socket.io-client";
 import { useSelector } from "react-redux";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   setcurrentUserSocketId,
-  setonlineUsers,
-  setsoket,
+  // setonlineUsers,
+  // setsoket,
 } from "../../redux/slice/chatstepper";
+import axiosInstance from "../networkCalls/axiosinstance";
+import { setcontactList } from "../../redux/slice/userslice";
+import toast from "react-hot-toast";
 
 // URL of your WebSocket server
-const SOCKET_SERVER_URL = "http://localhost:8080";
+// const SOCKET_SERVER_URL = "http://localhost:8080";
 
 const FirstChatPart = () => {
-  //TODO:- Panding Search bar
-  //TODO:- get whose are online from contacts
+  //TODO:- Panding Search Filter rows
+
+  //redux variables
+  const usernumber = useSelector((state: any) => state.user.userNumber); // logged usernumber
+  const onlineUsers = useSelector((state: any) => state.chat.onlineUsers); // online users list from soket
+  const contactList = useSelector((state: any) => state.user.contactList); // user contacts list from API
+
   const dispatch = useDispatch();
+
+  //call user/details api and get user contacts and show them in chat list
+  useEffect(() => {
+    async function fetchContactList() {
+      try {
+        const response = await axiosInstance.get(
+          `user/details?MobileNumber=${usernumber}`
+        );
+
+        //get user contacts list form backend
+        const chatcontacts = response.chatcontacts || [];
+
+        //set it to the redux store
+        dispatch(setcontactList(chatcontacts));
+      } catch (error: any) {
+        toast.error("Error fetching contact list:", error);
+      }
+    }
+
+    fetchContactList();
+  }, [usernumber, dispatch]);
 
   //socket logic
   // const [socket, setSocket] = useState<Socket | null>(null);
   // const [message, setMessage] = useState<string>("");
   // const [toUserId, setToUserId] = useState<string>("");
-
-  const usernumber = useSelector((state: any) => state.user.userNumber);
-  const onlineUsers = useSelector((state: any) => state.chat.onlineUsers);
   // console.log("onlineUsers", onlineUsers);
 
   // useEffect(() => {
@@ -47,10 +73,29 @@ const FirstChatPart = () => {
   //   };
   // }, [usernumber, dispatch]); // Only reconnect when usernumber changes
 
-  //filter logged in user from onlineuser list
-  const filterdOnlineUsers = Object.keys(onlineUsers).filter(
-    (userId) => userId !== usernumber
+  // Extract online user MobileNumbers, excluding the logged-in user
+  const onlineUserNumbers = Object.keys(onlineUsers).filter(
+    (number) => number !== usernumber
   );
+
+  // Filter contacts, excluding the current user
+  const onlineContacts = contactList.filter((contact: any) =>
+    onlineUserNumbers.includes(contact.MobileNumber)
+  );
+
+  const offlineContacts = contactList.filter(
+    (contact: any) =>
+      !onlineUserNumbers.includes(contact.MobileNumber) &&
+      contact.MobileNumber !== usernumber
+  );
+
+  // Combine lists with online users first
+  const sortedContacts = [...onlineContacts, ...offlineContacts];
+
+  //NOTE:- this is the old logic
+  // const filterdOnlineUsers = Object.keys(contactList).filter(
+  //   (userId) => userId !== usernumber
+  // );
 
   return (
     <Box
@@ -64,14 +109,14 @@ const FirstChatPart = () => {
       <Box
         sx={{
           position: "fixed",
-          width: "30%",
+          width: "28%",
           zIndex: 1,
-          backgroundColor: "#51344F", // Ensure the background is consistent
+          backgroundColor: "#51344F",
           padding: "1rem",
         }}
       >
         <label className="input input-bordered flex items-center gap-2">
-          <input type="text" className="grow" placeholder="Search" />
+          <input type="text" className="grow" placeholder="Search By Number" />
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 16 16"
@@ -86,21 +131,21 @@ const FirstChatPart = () => {
           </svg>
         </label>
       </Box>
-      {/* first show only those are online by clicking it make chat communication */}
+      {/* get user which are in the contacts */}
       <Box
         sx={{
-          marginTop: "65px", // Adjust for the height of the fixed search bar
+          marginTop: "65px",
           overflowY: "auto",
           padding: "1rem",
-          flex: 1, // Ensures this section takes the remaining height
+          flex: 1,
         }}
       >
-        {filterdOnlineUsers.map((userId) => (
+        {sortedContacts.map((contact: any, index: number) => (
           <Box
             //onclick show send chat and set current user socketid
             onClick={() => (
               dispatch(setChatAreastepper(true)),
-              dispatch(setcurrentUserSocketId(userId))
+              dispatch(setcurrentUserSocketId(contact.MobileNumber))
             )}
             sx={{
               display: "flex",
@@ -111,46 +156,28 @@ const FirstChatPart = () => {
             }}
           >
             <Box>
-              <div className="avatar online h-10 w-10">
+              <div
+                className={`avatar h-10 w-10 ${
+                  onlineUserNumbers.includes(contact.MobileNumber)
+                    ? "online"
+                    : ""
+                }`}
+              >
                 <div className="w-24 rounded-full">
                   <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
                 </div>
               </div>
             </Box>
             <Box>
-              <Typography>{userId}</Typography>
-              <Typography>Hey! How are you?</Typography>
+              <Typography>{contact.UserName}</Typography>
+              <Typography>
+                {onlineUserNumbers.includes(contact.MobileNumber)
+                  ? "Hey! I'm online"
+                  : "Last seen recently"}
+              </Typography>
             </Box>
           </Box>
         ))}
-        {/* {Array(19)
-          .fill("Box")
-          .map((_, index) => (
-            <Box
-              key={index}
-              //onclick show send chat section
-              onClick={() => dispatch(setChatAreastepper(true))}
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                gap: "10px",
-                marginBottom: "1rem",
-                cursor: "pointer",
-              }}
-            >
-              <Box>
-                <div className="avatar online h-10 w-10">
-                  <div className="w-24 rounded-full">
-                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
-                  </div>
-                </div>
-              </Box>
-              <Box>
-                <Typography>John Doe</Typography>
-                <Typography>Hey! How are you?</Typography>
-              </Box>
-            </Box>
-          ))} */}
       </Box>
     </Box>
   );
