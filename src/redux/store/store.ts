@@ -9,6 +9,7 @@ import chatReducer from "../slice/chatstepper";
 const userPersistConfig = {
   key: "user",
   storage,
+  whitelist: ["token", "userNumber"], // Only persist these specific slices
 };
 
 // Wrapping the user reducer with persistReducer

@@ -5,6 +5,7 @@ export const counterSlice = createSlice({
   initialState: {
     token: "",
     userNumber: "",
+    contactList: [],
   },
   reducers: {
     setToken: (state, action) => {
@@ -13,9 +14,19 @@ export const counterSlice = createSlice({
     setuserNumber: (state, action) => {
       state.userNumber = action.payload;
     },
+    setcontactList: (state, action) => {
+      state.contactList = action.payload;
+    },
+    clearStorage: (state) => {
+      // Reset state to initial values
+      state.token = "";
+      state.userNumber = "";
+      state.contactList = [];
+    },
   },
 });
 
-export const { setToken, setuserNumber } = counterSlice.actions;
+export const { setToken, setuserNumber, setcontactList, clearStorage } =
+  counterSlice.actions;
 
 export default counterSlice.reducer;

@@ -1,11 +1,29 @@
 import { Box, Typography, useMediaQuery } from "@mui/material";
 import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 import theme from "../styles/style";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { clearStorage } from "../redux/slice/userslice";
+import { persistor } from "../redux/store/store";
 
 const HeaderBar: React.FC = () => {
+  //TODO:- if its on login page then dont't show logout
   const issmallscreen = useMediaQuery(theme.breakpoints.down("sm"));
-  //TODO:- ON / settings option only
-  //TODO:- ON /homepage settings, profile, logout option
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    //clear redux storage
+    dispatch(clearStorage());
+
+    // Clear any persisted storage if using redux-persist
+    persistor.purge();
+
+    // Redirect to login page
+    navigate("/");
+  };
+
   return (
     <Box
       sx={{
@@ -64,12 +82,14 @@ const HeaderBar: React.FC = () => {
           gap: issmallscreen ? 1 : 2, // Add spacing between icon and text
         }}
       >
-        <Box sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          cursor: "pointer",
-        }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            cursor: "pointer",
+          }}
+        >
           {/* Settings Icon with Background */}
           <Box
             sx={{
@@ -82,7 +102,7 @@ const HeaderBar: React.FC = () => {
               flexShrink: 0, // Prevent shrinking
             }}
           >
-            <User size={10} color="#70486d"/>
+            <User size={10} color="#70486d" />
           </Box>
           <Typography
             sx={{
@@ -100,12 +120,14 @@ const HeaderBar: React.FC = () => {
             Profile
           </Typography>
         </Box>
-        <Box sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          cursor: "pointer",
-        }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            cursor: "pointer",
+          }}
+        >
           {/* Settings Icon with Background */}
           <Box
             sx={{
@@ -136,12 +158,15 @@ const HeaderBar: React.FC = () => {
             Settings
           </Typography>
           {/* logout button */}
-          <Box sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            cursor: "pointer",
-          }}>
+          <Box
+            onClick={handleLogout}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              cursor: "pointer",
+            }}
+          >
             {/* Settings Icon with Background */}
             <Box
               sx={{
