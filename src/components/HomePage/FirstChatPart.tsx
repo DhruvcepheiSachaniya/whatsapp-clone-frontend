@@ -24,6 +24,10 @@ const FirstChatPart = () => {
   const onlineUsers = useSelector((state: any) => state.chat.onlineUsers); // online users list from soket
   const contactList = useSelector((state: any) => state.user.contactList); // user contacts list from API
 
+  const currentSocketId = useSelector(
+    (state: any) => state.chat.currentUserSocketId
+  );
+
   const dispatch = useDispatch();
 
   //call user/details api and get user contacts and show them in chat list
@@ -136,47 +140,63 @@ const FirstChatPart = () => {
         sx={{
           marginTop: "65px",
           overflowY: "auto",
-          padding: "1rem",
+          // padding: "1rem",
+          paddingTop: "1rem",
           flex: 1,
         }}
       >
         {sortedContacts.map((contact: any, index: number) => (
-          <Box
-            //onclick show send chat and set current user socketid
-            onClick={() => (
-              dispatch(setChatAreastepper(true)),
-              dispatch(setcurrentUserSocketId(contact.MobileNumber))
-            )}
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              gap: "10px",
-              marginBottom: "1rem",
-              cursor: "pointer",
-            }}
-          >
-            <Box>
-              <div
-                className={`avatar h-10 w-10 ${
-                  onlineUserNumbers.includes(contact.MobileNumber)
-                    ? "online"
-                    : ""
-                }`}
-              >
-                <div className="w-24 rounded-full">
-                  <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+          <>
+            <Box
+              //onclick show send chat and set current user socketid
+              onClick={() => (
+                dispatch(setChatAreastepper(true)),
+                dispatch(setcurrentUserSocketId(contact.MobileNumber))
+              )}
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                gap: "10px",
+                // marginBottom: "1rem",
+                cursor: "pointer",
+                ":hover": {
+                  backgroundColor: "#4a2c3d",
+                },
+                backgroundColor:
+                  currentSocketId === contact.MobileNumber
+                    ? "#4a2c3d"
+                    : "#51344F",
+              }}
+            >
+              <Box>
+                <div
+                  className={`avatar h-10 w-10 ${
+                    onlineUserNumbers.includes(contact.MobileNumber)
+                      ? "online"
+                      : ""
+                  }`}
+                >
+                  <div className="w-24 rounded-full">
+                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                  </div>
                 </div>
-              </div>
+              </Box>
+              <Box>
+                <Typography>{contact.UserName}</Typography>
+                <Typography>
+                  {onlineUserNumbers.includes(contact.MobileNumber)
+                    ? "Hey! I'm online"
+                    : "Last seen recently"}
+                </Typography>
+              </Box>
             </Box>
-            <Box>
-              <Typography>{contact.UserName}</Typography>
-              <Typography>
-                {onlineUserNumbers.includes(contact.MobileNumber)
-                  ? "Hey! I'm online"
-                  : "Last seen recently"}
-              </Typography>
-            </Box>
-          </Box>
+            {/* Line between user */}
+            <Box
+              height={"0.5px"}
+              className=" bg-gray-300"
+              style={{ marginBottom: "0.8rem" }}
+            ></Box>
+          </>
         ))}
       </Box>
     </Box>

@@ -22,22 +22,29 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const dispatch = useDispatch(); // Import and use useDispatch hook
 
   useEffect(() => {
-    const newSocket = io(SOCKET_SERVER_URL, { transports: ["websocket"] });
-    console.log("Socket initialized:", newSocket);
+    //only initialized socket when user is logged in
+    if (usernumber) {
+      const newSocket = io(SOCKET_SERVER_URL, { transports: ["websocket"] });
+      console.log("Socket initialized:", newSocket);
 
-    newSocket.emit("register", { userId: usernumber });
+      newSocket.emit("register", { userId: usernumber });
 
-    setSocket(newSocket);
+      setSocket(newSocket);
 
-    newSocket.on("userList", (users) => {
-      console.log(users);
-      dispatch(setonlineUsers(users)); // Dispatch the action using useDispatch
-    });
+      newSocket.on("userList", (users) => {
+        dispatch(setonlineUsers(users)); // Dispatch the action using useDispatch
+      });
 
-    return () => {
-      console.log("Disconnecting socket...");
-      newSocket.disconnect();
-    };
+      return () => {
+        console.log("Disconnecting socket...");
+        newSocket.disconnect();
+      };
+    } else if (socket) {
+      // If user logs out, disconnect the socket
+      console.log("Disconnecting socket as user logged out...");
+      socket.disconnect();
+      setSocket(null);
+    }
   }, [usernumber, dispatch]);
 
   return (
