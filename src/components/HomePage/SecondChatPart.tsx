@@ -5,6 +5,7 @@ import { useSocket } from "./socket";
 import { useSelector } from "react-redux";
 
 const SecondChatPart = () => {
+  //TODO:- show chat area which users chat is selected
   const { socket } = useSocket();
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<any[]>([]);
@@ -13,7 +14,9 @@ const SecondChatPart = () => {
   );
   const currentSocketId = useSelector(
     (state: any) => state.chat.currentUserSocketId
-  );
+  ); // current reciver socket id
+
+  const userNumber = useSelector((state: any) => state.user.userNumber); // logged usernumber
 
   // Listen for incoming private messages
   useEffect(() => {
@@ -23,17 +26,7 @@ const SecondChatPart = () => {
     }
 
     const messageHandler = (msg: any) => {
-      setMessages((prevMessages) => {
-        // Check for duplicates based on timestamp and sender
-        const isDuplicate = prevMessages.some(
-          (message) =>
-            message.timestamp === msg.timestamp && message.from === msg.from
-        );
-        if (!isDuplicate) {
-          return [...prevMessages, msg];
-        }
-        return prevMessages;
-      });
+      setMessages((prevMessages) => [...prevMessages, msg]);
     };
 
     socket.off("privateMessageReceived");
@@ -53,7 +46,8 @@ const SecondChatPart = () => {
 
     const msg = {
       toUserId: currentSocketId,
-      from: socket.id,
+      from_number: userNumber,
+      to_number: currentSocketId,
       message,
       timestamp: Date.now(),
     };
@@ -67,6 +61,16 @@ const SecondChatPart = () => {
     ]);
     setMessage(""); // Clear input field
   };
+
+  // Filter messages based on currentSocketId
+  const filteredMessages = messages.filter(
+    (msg) =>
+      (msg.from_number === currentSocketId && msg.to_number === userNumber) || // Messages received by the logged-in user
+      (msg.from_number === userNumber && msg.to_number === currentSocketId) // Messages sent by the logged-in user
+  );
+
+  console.log("messages", messages);
+  console.log("from chat part", filteredMessages);
 
   return (
     <Box
@@ -121,7 +125,7 @@ const SecondChatPart = () => {
               gap: "1rem",
             }}
           >
-            {messages.map((msg, index) => (
+            {filteredMessages.map((msg, index) => (
               <Box
                 key={index}
                 className={`chat ${msg.fromSelf ? "chat-end" : "chat-start"}`}
