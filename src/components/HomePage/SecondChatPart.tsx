@@ -65,12 +65,18 @@ const SecondChatPart = () => {
   // Filter messages based on currentSocketId
   const filteredMessages = messages.filter(
     (msg) =>
-      (msg.from_number === currentSocketId && msg.to_number === userNumber) || // Messages received by the logged-in user
-      (msg.from_number === userNumber && msg.to_number === currentSocketId) // Messages sent by the logged-in user
+      // Messages sent by the logged-in user to the selected user
+      (msg.from_number === userNumber && msg.to_number === currentSocketId) ||
+      // Messages received by the logged-in user from the selected user
+      (msg.from_number === currentSocketId && msg.to_number === userNumber) ||
+      // Messages sent by the logged-in user (without a `to_number` field)
+      (msg.from_number === userNumber && !msg.to_number) ||
+      // Messages received by the logged-in user (without a `to_number` field)
+      (msg.from_number === currentSocketId && !msg.to_number)
   );
 
-  console.log("messages", messages);
-  console.log("from chat part", filteredMessages);
+  // console.log("messages", messages);
+  // console.log("from chat part", filteredMessages);
 
   return (
     <Box
