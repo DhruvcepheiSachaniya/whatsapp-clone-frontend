@@ -13,6 +13,9 @@ const SecondChatPart = () => {
   const { socket } = useSocket();
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<any>([]);
+
+  const [filteredMessages, setFilteredMessages] = useState([]);
+
   const chatareastepper = useSelector(
     (state: any) => state.stepper.chatAreastepper
   );
@@ -42,17 +45,17 @@ const SecondChatPart = () => {
           }));
 
         setMessages(processedMessages);
-        console.log("from fetch", processedMessages);
+        // console.log("from fetch", processedMessages);
         // console.log("Processed Messages:", processedMessages);
       } catch (error) {
-        toast.error("Failed to fetch messages");
+        console.error("Failed to fetch messages", error);
       }
     };
 
     if (currentSocketId) {
       fetchMessage();
     }
-  }, [currentSocketId]);
+  }, [currentSocketId, userNumber]);
 
   // Listen for incoming private messages
   useEffect(() => {
@@ -61,28 +64,26 @@ const SecondChatPart = () => {
       return;
     }
 
-    const messageHandler = (msg: string) => {
-      setMessages((prevMessages) => [...prevMessages, msg]);
-    };
-    // const messageHandler = async (newMessage: any) => {
-    //   if (newMessage.IsActive) {
-    //     setMessages((prevMessages: any) => [
-    //       ...prevMessages,
-    //       {
-    //         ...newMessage,
-    //         message: newMessage, // Replace encrypted message with decrypted
-    //       },
-    //     ]);
-    //   }
+    // const messageHandler = (msg: string) => {
+    //   setMessages((prevMessages) => [...prevMessages, msg]);
     // };
+    const messageHandler = (newMessage: any) => {
+      console.log("🔴 Received Message:", newMessage); // Debugging
 
-    socket.off("privateMessageReceived");
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages, newMessage];
+        console.log("📩 Updated Messages:", updatedMessages); // Log updated list
+        return updatedMessages;
+      });
+    };
+
+    // socket.off("privateMessageReceived");
     socket.on("privateMessageReceived", messageHandler);
 
     return () => {
       socket.off("privateMessageReceived", messageHandler);
     };
-  }, [socket]);
+  }, [socket, userNumber]);
 
   // Send a message
   const sendMessage = async () => {
@@ -120,21 +121,21 @@ const SecondChatPart = () => {
   };
 
   // Filter messages based on currentSocketId
-  const filteredMessages = messages.filter(
-    (msg) =>
-      // Messages sent by the logged-in user to the selected user
-      (msg.from_number === userNumber && msg.to_number === currentSocketId) ||
-      // Messages received by the logged-in user from the selected user
-      (msg.from_number === currentSocketId && msg.to_number === userNumber) ||
-      // Messages sent by the logged-in user (without a `to_number` field)
-      (msg.from_number === userNumber && !msg.to_number) ||
-      // Messages received by the logged-in user (without a `to_number` field)
-      (msg.from_number === currentSocketId && !msg.to_number)
-  );
+  useEffect(() => {
+    const updatedMessages = messages.filter(
+      (msg) =>
+        (msg.from_number === userNumber && msg.to_number === currentSocketId) ||
+        (msg.from_number === currentSocketId && msg.to_number === userNumber) ||
+        (msg.from_number === userNumber && !msg.to_number) ||
+        (msg.from_number === currentSocketId && !msg.to_number)
+    );
 
-  // console.log("messages", messages);
-  // console.log("from chat part", filteredMessages);
+    // console.log("Filtered Messages Updated:", updatedMessages); // Debugging log
+    setFilteredMessages(updatedMessages);
+  }, [messages, userNumber, currentSocketId]); // Runs whenever messages update
 
+  // console.log("Filtered Messages:", filteredMessages);
+  // console.log("messages list", messages);
   return (
     <Box
       sx={{
