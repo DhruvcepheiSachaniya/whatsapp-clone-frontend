@@ -5,6 +5,7 @@ import { useSocket } from "./socket";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import axiosInstance from "../networkCalls/axiosinstance";
+import CryptoJS from "crypto-js";
 
 const SecondChatPart = () => {
   //TODO1:- on send store message in database
@@ -25,6 +26,28 @@ const SecondChatPart = () => {
 
   const userNumber = useSelector((state: any) => state.user.userNumber); // logged usernumber
 
+  // Decryption function (same as backend)
+  const decryptData = (encryptedData: string, password: string): string => {
+    console.log("from ", encryptedData);
+    const [salt, ivHex, encrypted] = encryptedData.split("|");
+    if (!salt || !ivHex || !encrypted) {
+      throw new Error("Invalid encrypted data");
+    }
+    const key = CryptoJS.PBKDF2(password, salt, {
+      keySize: 192 / 32,
+      iterations: 1,
+    });
+    const iv = CryptoJS.enc.Hex.parse(ivHex);
+    const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7,
+    });
+    return decrypted.toString(CryptoJS.enc.Utf8);
+  };
+
+  const password = "Password is used to generate key";
+
   // Fetch chat history on select user
   useEffect(() => {
     const fetchMessage = async () => {
@@ -38,7 +61,8 @@ const SecondChatPart = () => {
           .filter((msg: any) => msg.IsActive)
           .map((msg: any) => ({
             ...msg,
-            message: msg.meassage, // ✅ Display "message" instead of "meassage"
+            message: decryptData(msg.message || msg.meassage, password), // ✅ Display "message" instead of "meassage"
+            // message: msg.meassage, // ✅ Display "message" instead of "meassage"
             from_number: msg.ownerId.MobileNumber, // Sender's number
             to_number: msg.receiverId.MobileNumber, // Receiver's number
             fromSelf: msg.ownerId.MobileNumber === userNumber, // Check if the logged-in user is the sender
