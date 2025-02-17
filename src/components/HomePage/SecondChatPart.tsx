@@ -6,6 +6,14 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import axiosInstance from "../networkCalls/axiosinstance";
 import CryptoJS from "crypto-js";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+
+const options = ["None", "Atria", "Callisto", "Dione"];
+
+const ITEM_HEIGHT = 48;
 
 const SecondChatPart = () => {
   //TODO1:- on send store message in database
@@ -25,6 +33,16 @@ const SecondChatPart = () => {
   ); // current reciver socket id
 
   const userNumber = useSelector((state: any) => state.user.userNumber); // logged usernumber
+
+  //for Menu Item
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: any) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   // Decryption function (same as backend)
   const decryptData = (encryptedData: string, password: string): string => {
@@ -147,7 +165,7 @@ const SecondChatPart = () => {
   // Filter messages based on currentSocketId
   useEffect(() => {
     const updatedMessages = messages.filter(
-      (msg) =>
+      (msg: any) =>
         (msg.from_number === userNumber && msg.to_number === currentSocketId) ||
         (msg.from_number === currentSocketId && msg.to_number === userNumber) ||
         (msg.from_number === userNumber && !msg.to_number) ||
@@ -185,22 +203,66 @@ const SecondChatPart = () => {
             sx={{
               display: "flex",
               flexDirection: "row",
+              justifyContent: "space-between",
               gap: "10px",
               marginTop: "0.5rem",
               cursor: "pointer",
               borderBottom: "1px solid #70486d",
             }}
           >
-            <Box>
-              <div className="avatar h-10 w-10">
-                <div className="w-24 rounded-full">
-                  <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+            <Box sx={{ display: "flex", gap: "0.5rem" }}>
+              <Box>
+                <div className="avatar h-10 w-10">
+                  <div className="w-24 rounded-full">
+                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                  </div>
                 </div>
-              </div>
+              </Box>
+              <Box>
+                <Typography>{currentSocketId}</Typography>
+                <Typography>online</Typography>
+              </Box>
             </Box>
             <Box>
-              <Typography>{currentSocketId}</Typography>
-              <Typography>online</Typography>
+              <Box>
+                <IconButton
+                  aria-label="more"
+                  id="long-button"
+                  aria-controls={open ? "long-menu" : undefined}
+                  aria-expanded={open ? "true" : undefined}
+                  aria-haspopup="true"
+                  onClick={handleClick}
+                >
+                  <MoreVertIcon />
+                </IconButton>
+                <Menu
+                  id="long-menu"
+                  MenuListProps={{
+                    "aria-labelledby": "long-button",
+                  }}
+                  anchorEl={anchorEl}
+                  open={open}
+                  onClose={handleClose}
+                  slotProps={{
+                    paper: {
+                      style: {
+                        maxHeight: ITEM_HEIGHT * 4.5,
+                        width: "20ch",
+                      },
+                    },
+                  }}
+                >
+                  {options.map((option) => (
+                    <MenuItem
+                      key={option}
+                      selected={option === "Pyxis"}
+                      onClick={handleClose}
+                    >
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </Box>
             </Box>
           </Box>
           <Box

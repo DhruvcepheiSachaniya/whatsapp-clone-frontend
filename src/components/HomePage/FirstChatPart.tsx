@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { setChatAreastepper } from "../../redux/slice/stepper";
 // import { io, Socket } from "socket.io-client";
 import { useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   setcurrentUserSocketId,
   // setonlineUsers,
@@ -17,16 +17,18 @@ import toast from "react-hot-toast";
 // const SOCKET_SERVER_URL = "http://localhost:8080";
 
 const FirstChatPart = () => {
-  //TODO:- Panding Search Filter rows
-
   //redux variables
   const usernumber = useSelector((state: any) => state.user.userNumber); // logged usernumber
   const onlineUsers = useSelector((state: any) => state.chat.onlineUsers); // online users list from soket
   const contactList = useSelector((state: any) => state.user.contactList); // user contacts list from API
 
+  //current Selecet User for Chat
   const currentSocketId = useSelector(
     (state: any) => state.chat.currentUserSocketId
   );
+
+  //Search filter
+  const [search, setSearch] = useState("");
 
   const dispatch = useDispatch();
 
@@ -44,7 +46,7 @@ const FirstChatPart = () => {
         //set it to the redux store
         dispatch(setcontactList(chatcontacts));
       } catch (error: any) {
-        toast.error("Error fetching contact list:", error);
+        console.error("Error fetching contact list:", error);
       }
     }
 
@@ -96,6 +98,18 @@ const FirstChatPart = () => {
   // Combine lists with online users first
   const sortedContacts = [...onlineContacts, ...offlineContacts];
 
+  // search value based on user number and username
+  const searchFilter = sortedContacts.filter((contact: any) => {
+    return (
+      contact.MobileNumber.includes(search) ||
+      contact.UserName.toLowerCase().includes(search.toLowerCase())
+    );
+  });
+
+  // final contact filter
+  const FinalContactFilter =
+    searchFilter.length > 0 ? searchFilter : sortedContacts;
+
   //NOTE:- this is the old logic
   // const filterdOnlineUsers = Object.keys(contactList).filter(
   //   (userId) => userId !== usernumber
@@ -120,7 +134,13 @@ const FirstChatPart = () => {
         }}
       >
         <label className="input input-bordered flex items-center gap-2">
-          <input type="text" className="grow" placeholder="Search By Number" />
+          <input
+            type="text"
+            className="grow"
+            placeholder="Search By Number"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 16 16"
@@ -145,59 +165,70 @@ const FirstChatPart = () => {
           flex: 1,
         }}
       >
-        {sortedContacts.map((contact: any, index: number) => (
+        {FinalContactFilter.length === 0 || searchFilter.length === 0 ? (
           <>
-            <Box
-              //onclick show send chat and set current user socketid
-              onClick={() => (
-                dispatch(setChatAreastepper(true)),
-                dispatch(setcurrentUserSocketId(contact.MobileNumber))
-              )}
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                gap: "10px",
-                // marginBottom: "1rem",
-                cursor: "pointer",
-                ":hover": {
-                  backgroundColor: "#4a2c3d",
-                },
-                backgroundColor:
-                  currentSocketId === contact.MobileNumber
-                    ? "#4a2c3d"
-                    : "#51344F",
-              }}
-            >
-              <Box>
-                <div
-                  className={`avatar h-10 w-10 ${
-                    onlineUserNumbers.includes(contact.MobileNumber)
-                      ? "online"
-                      : ""
-                  }`}
-                >
-                  <div className="w-24 rounded-full">
-                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
-                  </div>
-                </div>
-              </Box>
-              <Box>
-                <Typography>{contact.UserName}</Typography>
-                <Typography>
-                  {onlineUserNumbers.includes(contact.MobileNumber)
-                    ? "Hey! I'm online"
-                    : "Last seen recently"}
-                </Typography>
-              </Box>
+            <Box>
+              <Typography sx={{ textAlign: "center", color: "white" }}>
+                No Contact Found
+              </Typography>
             </Box>
-            {/* Line between user */}
-            <Box
-              height={"0.5px"}
-              className=" bg-gray-300"
-              style={{ marginBottom: "0.8rem" }}
-            ></Box>
           </>
-        ))}
+        ) : (
+          FinalContactFilter.map((contact: any, index: number) => (
+            <>
+              <Box
+                //onclick show send chat and set current user socketid
+                key={index}
+                onClick={() => (
+                  dispatch(setChatAreastepper(true)),
+                  dispatch(setcurrentUserSocketId(contact.MobileNumber))
+                )}
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: "10px",
+                  // marginBottom: "1rem",
+                  cursor: "pointer",
+                  ":hover": {
+                    backgroundColor: "#4a2c3d",
+                  },
+                  backgroundColor:
+                    currentSocketId === contact.MobileNumber
+                      ? "#4a2c3d"
+                      : "#51344F",
+                }}
+              >
+                <Box>
+                  <div
+                    className={`avatar h-10 w-10 ${
+                      onlineUserNumbers.includes(contact.MobileNumber)
+                        ? "online"
+                        : ""
+                    }`}
+                  >
+                    <div className="w-24 rounded-full">
+                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                    </div>
+                  </div>
+                </Box>
+                <Box>
+                  <Typography>{contact.UserName}</Typography>
+                  <Typography>
+                    {onlineUserNumbers.includes(contact.MobileNumber)
+                      ? "Hey! I'm online"
+                      : "Last seen recently"}
+                  </Typography>
+                </Box>
+              </Box>
+              {/* Line between user */}
+              <Box
+                height={"0.5px"}
+                className=" bg-gray-300"
+                style={{ marginBottom: "0.8rem" }}
+              ></Box>
+            </>
+          ))
+        )}
       </Box>
     </Box>
   );
