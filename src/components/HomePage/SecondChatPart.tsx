@@ -1,6 +1,6 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { MessageSquare } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSocket } from "./socket";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
@@ -10,10 +10,27 @@ import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { styled } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import AddIcon from "@mui/icons-material/Add";
 
 const options = ["None", "Atria", "Callisto", "Dione"];
 
 const ITEM_HEIGHT = 48;
+
+//For File Input
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
+  height: 1,
+  overflow: "hidden",
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  whiteSpace: "nowrap",
+  width: 1,
+});
 
 const SecondChatPart = () => {
   //TODO1:- on send store message in database
@@ -33,6 +50,16 @@ const SecondChatPart = () => {
   ); // current reciver socket id
 
   const userNumber = useSelector((state: any) => state.user.userNumber); // logged usernumber
+
+  //for scrollbar down at the last message
+  const messagesEndRef = useRef(null);
+
+  // Scroll to the bottom when messages update or chat area opens
+  useEffect(() => {
+    if (messagesEndRef.current && chatareastepper) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [filteredMessages, chatareastepper]); // Trigger on message updates or chat area state change
 
   //for Menu Item
   const [anchorEl, setAnchorEl] = useState(null);
@@ -176,8 +203,6 @@ const SecondChatPart = () => {
     setFilteredMessages(updatedMessages);
   }, [messages, userNumber, currentSocketId]); // Runs whenever messages update
 
-  // console.log("Filtered Messages:", filteredMessages);
-  // console.log("messages list", messages);
   return (
     <Box
       sx={{
@@ -298,6 +323,7 @@ const SecondChatPart = () => {
                 <div className="chat-footer opacity-50">Delivered</div>
               </Box>
             ))}
+            <div ref={messagesEndRef} /> {/* Scroll to the bottom */}
           </Box>
           <Box
             sx={{
@@ -315,6 +341,20 @@ const SecondChatPart = () => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
+            <Button
+              component="label"
+              role={undefined}
+              variant="outlined"
+              tabIndex={-1}
+              startIcon={<AddIcon />}
+            >
+              {/* Upload files */}
+              <VisuallyHiddenInput
+                type="file"
+                onChange={(event) => console.log(event.target.files)}
+                multiple
+              />
+            </Button>
             <Button variant="contained" onClick={sendMessage}>
               Send
             </Button>
