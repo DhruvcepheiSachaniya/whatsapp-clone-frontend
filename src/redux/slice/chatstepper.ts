@@ -5,6 +5,8 @@ export const ChatSlice = createSlice({
   initialState: {
     soket: null,
     currentUserSocketId: "",
+    currentUserPhotoUrl: "",
+    currentUserUserName: "",
     onlineUsers: [],
   },
   reducers: {
@@ -17,10 +19,21 @@ export const ChatSlice = createSlice({
     setonlineUsers: (state, action) => {
       state.onlineUsers = action.payload;
     },
+    setcurrentUserPhotoUrl: (state, action) => {
+      state.currentUserPhotoUrl = action.payload;
+    },
+    setcurrentUserUserName: (state, action) => {
+      state.currentUserUserName = action.payload;
+    },
   },
 });
 
-export const { setsoket, setcurrentUserSocketId, setonlineUsers } =
-  ChatSlice.actions;
+export const {
+  setsoket,
+  setcurrentUserSocketId,
+  setonlineUsers,
+  setcurrentUserPhotoUrl,
+  setcurrentUserUserName,
+} = ChatSlice.actions;
 
 export default ChatSlice.reducer;
