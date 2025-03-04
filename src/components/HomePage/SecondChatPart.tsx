@@ -13,6 +13,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
+import { RootState } from "../../redux/store/store";
 
 const options = ["None", "Atria", "Callisto", "Dione"];
 
@@ -34,18 +35,26 @@ const VisuallyHiddenInput = styled("input")({
 const SecondChatPart = () => {
   const { socket } = useSocket();
   const [message, setMessage] = useState<string>("");
-  const [messages, setMessages] = useState<any>([]);
+  const [messages, setMessages] = useState([]);
 
   const [filteredMessages, setFilteredMessages] = useState([]);
 
   const chatareastepper = useSelector(
-    (state: any) => state.stepper.chatAreastepper
+    (state: RootState) => state.stepper.chatAreastepper
   );
   const currentSocketId = useSelector(
-    (state: any) => state.chat.currentUserSocketId
+    (state: RootState) => state.chat.currentUserSocketId
   ); // current reciver socket id
 
-  const userNumber = useSelector((state: any) => state.user.userNumber); // logged usernumber
+  const currentUserPhotoUrl = useSelector(
+    (state: RootState) => state.chat.currentUserPhotoUrl
+  ); // current reciver photo
+
+  const currentUserUserName = useSelector(
+    (state: RootState) => state.chat.currentUserUserName
+  ); // current reciver username
+
+  const userNumber = useSelector((state: RootState) => state.user.userNumber); // logged usernumber
 
   //for scrollbar down at the last message
   const messagesEndRef = useRef(null);
@@ -69,7 +78,6 @@ const SecondChatPart = () => {
 
   // Decryption function (same as backend)
   const decryptData = (encryptedData: string, password: string): string => {
-    console.log("from ", encryptedData);
     const [salt, ivHex, encrypted] = encryptedData.split("|");
     if (!salt || !ivHex || !encrypted) {
       throw new Error("Invalid encrypted data");
@@ -93,25 +101,23 @@ const SecondChatPart = () => {
   useEffect(() => {
     const fetchMessage = async () => {
       try {
-        const response = await axiosInstance.get("chat/message", {
+        const response: any = await axiosInstance.get("chat/message", {
           params: { receiverNumber: currentSocketId },
         });
 
         // Process messages directly without decryption
         const processedMessages = response.get_messages
-          .filter((msg: any) => msg.IsActive)
+          .filter((msg: boolean) => msg?.IsActive)
           .map((msg: any) => ({
             ...msg,
-            message: decryptData(msg.message || msg.meassage, password), // ✅ Display "message" instead of "meassage"
-            // message: msg.meassage, // ✅ Display "message" instead of "meassage"
+            // message: decryptData(msg.message || msg.meassage, password), // ✅ Display "message" instead of "meassage"
+            message: msg.meassage, // ✅ Display "message" instead of "meassage"
             from_number: msg.ownerId.MobileNumber, // Sender's number
             to_number: msg.receiverId.MobileNumber, // Receiver's number
             fromSelf: msg.ownerId.MobileNumber === userNumber, // Check if the logged-in user is the sender
           }));
 
         setMessages(processedMessages);
-        // console.log("from fetch", processedMessages);
-        // console.log("Processed Messages:", processedMessages);
       } catch (error) {
         console.error("Failed to fetch messages", error);
       }
@@ -125,7 +131,6 @@ const SecondChatPart = () => {
   // Listen for incoming private messages
   useEffect(() => {
     if (!socket) {
-      console.log("Socket instance not available yet.");
       return;
     }
 
@@ -133,11 +138,9 @@ const SecondChatPart = () => {
     //   setMessages((prevMessages) => [...prevMessages, msg]);
     // };
     const messageHandler = (newMessage: any) => {
-      console.log("🔴 Received Message:", newMessage); // Debugging
-
       setMessages((prevMessages) => {
         const updatedMessages = [...prevMessages, newMessage];
-        console.log("📩 Updated Messages:", updatedMessages); // Log updated list
+
         return updatedMessages;
       });
     };
@@ -153,7 +156,6 @@ const SecondChatPart = () => {
   // Send a message
   const sendMessage = async () => {
     if (!socket || !message) {
-      console.log("Socket or message is missing.");
       return;
     }
 
@@ -235,12 +237,17 @@ const SecondChatPart = () => {
               <Box>
                 <div className="avatar h-10 w-10">
                   <div className="w-24 rounded-full">
-                    <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                    <img
+                      src={
+                        currentUserPhotoUrl ||
+                        "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                      }
+                    />
                   </div>
                 </div>
               </Box>
               <Box>
-                <Typography>{currentSocketId}</Typography>
+                <Typography>{currentUserUserName}</Typography>
                 <Typography>online</Typography>
               </Box>
             </Box>
@@ -314,7 +321,8 @@ const SecondChatPart = () => {
                   <time className="text-xs opacity-50">12:46</time>
                 </div>
                 <div className="chat-bubble break-words whitespace-normal w-fit max-w-[75%] p-3">
-                  {msg.message}
+                  {/* {msg.message} */}
+                  {decryptData(msg?.message, password)}
                 </div>
                 <div className="chat-footer opacity-50">Delivered</div>
               </Box>

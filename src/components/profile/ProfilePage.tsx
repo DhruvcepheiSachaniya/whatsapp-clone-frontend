@@ -15,7 +15,9 @@ const ProfilePage = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Upload profile image
-  const postProfileImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const postProfileImage = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     try {
       setIsImageLoading(true);
 
@@ -110,31 +112,34 @@ const ProfilePage = () => {
               {/* Profile Image */}
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
-                {isImageLoading ? (
-                  <CircularProgress size={20} color="inherit" /> 
-                ) : (
-                  <>
-                  <img
-                    src={userProfile?.UserPhotoUrl || "/avatar.png"}
-                    alt="Profile"
-                    className="size-32 rounded-full object-cover border-4"
-                  />
-                  <label
-                    htmlFor="avatar-upload"
-                    className="absolute bottom-0 right-0 bg-base-content hover:scale-105 p-2 rounded-full cursor-pointer transition-all duration-200"
-                  >
-                    <Camera className="w-5 h-5 text-base-200" />
-                    <input
-                      type="file"
-                      id="avatar-upload"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={postProfileImage}
-                      disabled={isImageLoading}
-                    />
-                  </label>
-                  </>
-                )}
+                  {isImageLoading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <>
+                      <img
+                        src={
+                          userProfile?.UserPhotoUrl ||
+                          "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                        }
+                        alt="Profile"
+                        className="size-32 rounded-full object-cover border-4"
+                      />
+                      <label
+                        htmlFor="avatar-upload"
+                        className="absolute bottom-0 right-0 bg-base-content hover:scale-105 p-2 rounded-full cursor-pointer transition-all duration-200"
+                      >
+                        <Camera className="w-5 h-5 text-base-200" />
+                        <input
+                          type="file"
+                          id="avatar-upload"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={postProfileImage}
+                          disabled={isImageLoading}
+                        />
+                      </label>
+                    </>
+                  )}
                 </div>
                 <p className="text-sm text-zinc-400">
                   Click the camera icon to update your photo

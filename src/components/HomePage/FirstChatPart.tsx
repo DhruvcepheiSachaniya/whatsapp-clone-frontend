@@ -5,22 +5,25 @@ import { setChatAreastepper } from "../../redux/slice/stepper";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import {
+  setcurrentUserPhotoUrl,
   setcurrentUserSocketId,
+  setcurrentUserUserName,
   // setonlineUsers,
   // setsoket,
 } from "../../redux/slice/chatstepper";
 import axiosInstance from "../networkCalls/axiosinstance";
 import { setcontactList } from "../../redux/slice/userslice";
 import toast from "react-hot-toast";
+import { RootState } from "../../redux/store/store";
 
 // URL of your WebSocket server
 // const SOCKET_SERVER_URL = "http://localhost:8080";
 
 const FirstChatPart = () => {
   //redux variables
-  const usernumber = useSelector((state: any) => state.user.userNumber); // logged usernumber
-  const onlineUsers = useSelector((state: any) => state.chat.onlineUsers); // online users list from soket
-  const contactList = useSelector((state: any) => state.user.contactList); // user contacts list from API
+  const usernumber = useSelector((state: RootState) => state.user.userNumber); // logged usernumber
+  const onlineUsers = useSelector((state: RootState) => state.chat.onlineUsers); // online users list from soket
+  const contactList = useSelector((state: RootState) => state.user.contactList); // user contacts list from API
 
   //current Selecet User for Chat
   const currentSocketId = useSelector(
@@ -36,7 +39,7 @@ const FirstChatPart = () => {
   useEffect(() => {
     async function fetchContactList() {
       try {
-        const response = await axiosInstance.get(
+        const response: any = await axiosInstance.get(
           `user/details?MobileNumber=${usernumber}`
         );
 
@@ -181,12 +184,15 @@ const FirstChatPart = () => {
                 key={index}
                 onClick={() => (
                   dispatch(setChatAreastepper(true)),
-                  dispatch(setcurrentUserSocketId(contact.MobileNumber))
+                  dispatch(setcurrentUserSocketId(contact.MobileNumber)),
+                  dispatch(setcurrentUserPhotoUrl(contact.UserPhotoUrl)),
+                  dispatch(setcurrentUserUserName(contact.UserName))
                 )}
                 sx={{
                   display: "flex",
                   flexDirection: "row",
                   gap: "10px",
+                  padding: "3px 5px 0px 5px",
                   // marginBottom: "1rem",
                   cursor: "pointer",
                   ":hover": {
@@ -207,7 +213,12 @@ const FirstChatPart = () => {
                     }`}
                   >
                     <div className="w-24 rounded-full">
-                      <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                      <img
+                        src={
+                          contact?.UserPhotoUrl ||
+                          "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                        }
+                      />
                     </div>
                   </div>
                 </Box>
