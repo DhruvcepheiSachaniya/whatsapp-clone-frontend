@@ -2,16 +2,44 @@ import { Box, CircularProgress } from "@mui/material";
 import HeaderBar from "../HeaderBar";
 import { Camera, Mail, User } from "lucide-react";
 import { useEffect, useState } from "react";
-import { GetProfileDataApi } from "../API/Profile";
+import { GetProfileDataApi, HandleProfileImageUpload } from "../API/Profile";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserProfile } from "../../redux/slice/userslice";
-import { RootState } from "../../redux/store"; // Adjust the import based on your store setup
+import { RootState } from "../../redux/store/store";
 
 const ProfilePage = () => {
   const dispatch = useDispatch();
   const userProfile = useSelector((state: RootState) => state.user.userProfile);
   const [isLoading, setIsLoading] = useState(true);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Upload profile image
+  const postProfileImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setIsImageLoading(true);
+
+      const file = event.target.files?.[0];
+      if (!file) {
+        throw new Error("No file selected");
+      }
+
+      const profileImage: any = await HandleProfileImageUpload(file);
+
+      // Update the user profile image in the Redux store
+      dispatch(
+        setUserProfile({
+          ...userProfile,
+          UserPhotoUrl: profileImage?.find_user?.UserPhotoUrl,
+        })
+      );
+    } catch (err) {
+      console.error("Failed to upload profile image:", err);
+      setError("Failed to upload profile image");
+    } finally {
+      setIsImageLoading(false);
+    }
+  };
 
   // Fetch profile data
   const fetchProfileData = async () => {
@@ -82,6 +110,10 @@ const ProfilePage = () => {
               {/* Profile Image */}
               <div className="flex flex-col items-center gap-4">
                 <div className="relative">
+                {isImageLoading ? (
+                  <CircularProgress size={20} color="inherit" /> 
+                ) : (
+                  <>
                   <img
                     src={userProfile?.UserPhotoUrl || "/avatar.png"}
                     alt="Profile"
@@ -97,10 +129,12 @@ const ProfilePage = () => {
                       id="avatar-upload"
                       className="hidden"
                       accept="image/*"
-                      // onChange={handleImageUpload}
-                      // disabled={isUpdatingProfile}
+                      onChange={postProfileImage}
+                      disabled={isImageLoading}
                     />
                   </label>
+                  </>
+                )}
                 </div>
                 <p className="text-sm text-zinc-400">
                   Click the camera icon to update your photo
