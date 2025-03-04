@@ -12,7 +12,6 @@ import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AddIcon from "@mui/icons-material/Add";
 
 const options = ["None", "Atria", "Callisto", "Dione"];
@@ -33,9 +32,6 @@ const VisuallyHiddenInput = styled("input")({
 });
 
 const SecondChatPart = () => {
-  //TODO1:- on send store message in database
-  //TODO2:- message receive from db but via socekt
-
   const { socket } = useSocket();
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<any>([]);

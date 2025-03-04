@@ -42,10 +42,12 @@ const HeaderBar: React.FC = () => {
     >
       {/* Left Section */}
       <Box
+        onClick={() => navigate("/homepage")}
         sx={{
           display: "flex",
           alignItems: "center",
           gap: issmallscreen ? 1 : 2,
+          cursor: "pointer",
         }}
       >
         {/* Message Icon with Background */}
@@ -83,6 +85,7 @@ const HeaderBar: React.FC = () => {
         }}
       >
         <Box
+          onClick={() => navigate("/profile")}
           sx={{
             display: "flex",
             alignItems: "center",
