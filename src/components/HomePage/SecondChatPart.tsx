@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { MessageSquare } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSocket } from "./socket";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import axiosInstance from "../networkCalls/axiosinstance";
 import CryptoJS from "crypto-js";
@@ -14,6 +14,9 @@ import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
 import { RootState } from "../../redux/store/store";
+import { getimagecloudurl } from "../API/Chat";
+import { setcurrentImgPreviewUrl } from "../../redux/slice/chatstepper";
+import { Message } from "./types";
 
 const options = ["None", "Atria", "Callisto", "Dione"];
 
@@ -38,6 +41,10 @@ const SecondChatPart = () => {
   const [messages, setMessages] = useState([]);
 
   const [filteredMessages, setFilteredMessages] = useState([]);
+
+  const currentImgPreviewUrl = useSelector(
+    (state: RootState) => state.chat.currentImgPreviewUrl
+  );
 
   const chatareastepper = useSelector(
     (state: RootState) => state.stepper.chatAreastepper
@@ -78,21 +85,26 @@ const SecondChatPart = () => {
 
   // Decryption function (same as backend)
   const decryptData = (encryptedData: string, password: string): string => {
-    const [salt, ivHex, encrypted] = encryptedData.split("|");
-    if (!salt || !ivHex || !encrypted) {
-      throw new Error("Invalid encrypted data");
+    try {
+      const [salt, ivHex, encrypted] = encryptedData.split("|");
+      if (!salt || !ivHex || !encrypted) {
+        throw new Error("Invalid encrypted data");
+      }
+      const key = CryptoJS.PBKDF2(password, salt, {
+        keySize: 192 / 32,
+        iterations: 1,
+      });
+      const iv = CryptoJS.enc.Hex.parse(ivHex);
+      const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7,
+      });
+      return decrypted.toString(CryptoJS.enc.Utf8);
+    } catch (error) {
+      console.error("Decryption failed:", error);
+      return encryptedData; // Return the original data if decryption fails
     }
-    const key = CryptoJS.PBKDF2(password, salt, {
-      keySize: 192 / 32,
-      iterations: 1,
-    });
-    const iv = CryptoJS.enc.Hex.parse(ivHex);
-    const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
-      iv: iv,
-      mode: CryptoJS.mode.CBC,
-      padding: CryptoJS.pad.Pkcs7,
-    });
-    return decrypted.toString(CryptoJS.enc.Utf8);
   };
 
   const password = "Password is used to generate key";
@@ -107,14 +119,14 @@ const SecondChatPart = () => {
 
         // Process messages directly without decryption
         const processedMessages = response.get_messages
-          .filter((msg: boolean) => msg?.IsActive)
+          .filter((msg: Message) => msg?.IsActive)
           .map((msg: any) => ({
             ...msg,
             // message: decryptData(msg.message || msg.meassage, password), // ✅ Display "message" instead of "meassage"
-            message: msg.meassage, // ✅ Display "message" instead of "meassage"
-            from_number: msg.ownerId.MobileNumber, // Sender's number
-            to_number: msg.receiverId.MobileNumber, // Receiver's number
-            fromSelf: msg.ownerId.MobileNumber === userNumber, // Check if the logged-in user is the sender
+            message: msg?.meassage || msg.message, // ✅ Display "message" instead of "meassage"
+            from_number: msg?.ownerId.MobileNumber, // Sender's number
+            to_number: msg?.receiverId.MobileNumber, // Receiver's number
+            fromSelf: msg?.ownerId.MobileNumber === userNumber, // Check if the logged-in user is the sender
           }));
 
         setMessages(processedMessages);
@@ -137,8 +149,8 @@ const SecondChatPart = () => {
     // const messageHandler = (msg: string) => {
     //   setMessages((prevMessages) => [...prevMessages, msg]);
     // };
-    const messageHandler = (newMessage: any) => {
-      setMessages((prevMessages) => {
+    const messageHandler = (newMessage: Message) => {
+      setMessages((prevMessages: Message[]) => {
         const updatedMessages = [...prevMessages, newMessage];
 
         return updatedMessages;
@@ -155,33 +167,74 @@ const SecondChatPart = () => {
 
   // Send a message
   const sendMessage = async () => {
-    if (!socket || !message) {
+    if (!socket) {
       return;
     }
 
     try {
-      //TODO:- store send message in db post chat/message
-      const response = await axiosInstance.post("chat/meassage", {
-        reciverNumber: currentSocketId,
-        meassage: message,
-      });
+      // Handle image message
+      if (currentImgPreviewUrl !== null) {
+        // Get the cloudinary URL for the image
+        const cloudinaryUrl = await getimagecloudurl(currentImgPreviewUrl);
 
-      const msg = {
-        toUserId: currentSocketId,
-        from_number: userNumber,
-        to_number: currentSocketId,
-        message,
-        timestamp: Date.now(),
-      };
+        // Send the image URL as a message and set IsImg to true
+        const response = await axiosInstance.post("chat/meassage", {
+          reciverNumber: currentSocketId,
+          meassage: cloudinaryUrl, // Corrected typo
+          IsImage: true,
+        });
 
-      socket.emit("privateMessage", msg);
+        // Create the message object for socket emit and state update
+        const msg = {
+          toUserId: currentSocketId,
+          from_number: userNumber,
+          to_number: currentSocketId,
+          message: cloudinaryUrl, // Image URL
+          IsImage: true, // Image message flag
+          timestamp: Date.now(),
+        };
 
-      // Add message to local state
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { ...msg, fromSelf: true },
-      ]);
-      setMessage(""); // Clear input field
+        // Emit the message via socket
+        socket.emit("privateMessage", msg);
+
+        // Update local state with the new message
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { ...msg, fromSelf: true },
+        ]);
+
+        // Clear the input field (image message doesn't need a text message reset)
+        setMessage("");
+        dispatch(setcurrentImgPreviewUrl(null)); // Clear the image preview
+      } else if (message) {
+        // If there's no image but a text message exists
+        const response = await axiosInstance.post("chat/meassage", {
+          // Corrected typo
+          reciverNumber: currentSocketId,
+          meassage: message,
+        });
+
+        const msg = {
+          toUserId: currentSocketId,
+          from_number: userNumber,
+          to_number: currentSocketId,
+          message,
+          IsImage: false, // Text message flag
+          timestamp: Date.now(),
+        };
+
+        // Emit the text message via socket
+        socket.emit("privateMessage", msg);
+
+        // Add the message to local state
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { ...msg, fromSelf: true },
+        ]);
+
+        // Clear input field
+        setMessage("");
+      }
     } catch (error) {
       toast.error("Failed to send message");
     }
@@ -190,16 +243,28 @@ const SecondChatPart = () => {
   // Filter messages based on currentSocketId
   useEffect(() => {
     const updatedMessages = messages.filter(
-      (msg: any) =>
+      (msg: Message) =>
         (msg.from_number === userNumber && msg.to_number === currentSocketId) ||
         (msg.from_number === currentSocketId && msg.to_number === userNumber) ||
         (msg.from_number === userNumber && !msg.to_number) ||
         (msg.from_number === currentSocketId && !msg.to_number)
     );
 
-    // console.log("Filtered Messages Updated:", updatedMessages); // Debugging log
     setFilteredMessages(updatedMessages);
   }, [messages, userNumber, currentSocketId]); // Runs whenever messages update
+
+  const dispatch = useDispatch();
+
+  // handing image upload
+  const handleimageuploadchange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (file) {
+      dispatch(setcurrentImgPreviewUrl(file));
+    }
+  };
 
   return (
     <Box
@@ -212,158 +277,169 @@ const SecondChatPart = () => {
       }}
     >
       {chatareastepper ? (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            height: "100%",
-            overflow: "hidden",
-          }}
-        >
-          {/* chat area header */}
+        <>
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              gap: "10px",
-              marginTop: "0.5rem",
-              cursor: "pointer",
-              borderBottom: "1px solid #70486d",
-            }}
-          >
-            <Box sx={{ display: "flex", gap: "0.5rem" }}>
-              <Box>
-                <div className="avatar h-10 w-10">
-                  <div className="w-24 rounded-full">
-                    <img
-                      src={
-                        currentUserPhotoUrl ||
-                        "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                      }
-                    />
-                  </div>
-                </div>
-              </Box>
-              <Box>
-                <Typography>{currentUserUserName}</Typography>
-                <Typography>online</Typography>
-              </Box>
-            </Box>
-            <Box>
-              <Box>
-                <IconButton
-                  aria-label="more"
-                  id="long-button"
-                  aria-controls={open ? "long-menu" : undefined}
-                  aria-expanded={open ? "true" : undefined}
-                  aria-haspopup="true"
-                  onClick={handleClick}
-                >
-                  <MoreVertIcon />
-                </IconButton>
-                <Menu
-                  id="long-menu"
-                  MenuListProps={{
-                    "aria-labelledby": "long-button",
-                  }}
-                  anchorEl={anchorEl}
-                  open={open}
-                  onClose={handleClose}
-                  slotProps={{
-                    paper: {
-                      style: {
-                        maxHeight: ITEM_HEIGHT * 4.5,
-                        width: "20ch",
-                      },
-                    },
-                  }}
-                >
-                  {options.map((option) => (
-                    <MenuItem
-                      key={option}
-                      selected={option === "Pyxis"}
-                      onClick={handleClose}
-                    >
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </Box>
-            </Box>
-          </Box>
-          <Box
-            sx={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "1rem",
               display: "flex",
               flexDirection: "column",
               gap: "1rem",
+              height: "100%",
+              overflow: "hidden",
             }}
           >
-            {filteredMessages.map((msg, index) => (
-              <Box
-                key={index}
-                className={`chat ${msg.fromSelf ? "chat-end" : "chat-start"}`}
-              >
-                <div className="chat-image avatar">
-                  <div className="w-10 rounded-full">
-                    <img
-                      alt="Avatar"
-                      src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                    />
-                  </div>
-                </div>
-                <div className="chat-header">
-                  {msg.fromSelf ? "You" : msg.from_number}
-                  <time className="text-xs opacity-50">12:46</time>
-                </div>
-                <div className="chat-bubble break-words whitespace-normal w-fit max-w-[75%] p-3">
-                  {/* {msg.message} */}
-                  {decryptData(msg?.message, password)}
-                </div>
-                <div className="chat-footer opacity-50">Delivered</div>
-              </Box>
-            ))}
-            <div ref={messagesEndRef} /> {/* Scroll to the bottom */}
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              gap: "1rem",
-              padding: "1rem",
-              borderTop: "1px solid #70486d",
-              backgroundColor: "#51344F",
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Type here"
-              className="input input-bordered w-full"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-            <Button
-              component="label"
-              role={undefined}
-              variant="outlined"
-              tabIndex={-1}
-              startIcon={<AddIcon />}
+            {/* chat area header */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                gap: "10px",
+                marginTop: "0.5rem",
+                cursor: "pointer",
+                borderBottom: "1px solid #70486d",
+              }}
             >
-              {/* Upload files */}
-              <VisuallyHiddenInput
-                type="file"
-                onChange={(event) => console.log(event.target.files)}
-                multiple
+              <Box sx={{ display: "flex", gap: "0.5rem" }}>
+                <Box>
+                  <div className="avatar h-10 w-10">
+                    <div className="w-24 rounded-full">
+                      <img
+                        src={
+                          currentUserPhotoUrl ||
+                          "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                        }
+                      />
+                    </div>
+                  </div>
+                </Box>
+                <Box>
+                  <Typography>{currentUserUserName}</Typography>
+                  <Typography>online</Typography>
+                </Box>
+              </Box>
+              <Box>
+                <Box>
+                  <IconButton
+                    aria-label="more"
+                    id="long-button"
+                    aria-controls={open ? "long-menu" : undefined}
+                    aria-expanded={open ? "true" : undefined}
+                    aria-haspopup="true"
+                    onClick={handleClick}
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
+                  <Menu
+                    id="long-menu"
+                    MenuListProps={{
+                      "aria-labelledby": "long-button",
+                    }}
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    slotProps={{
+                      paper: {
+                        style: {
+                          maxHeight: ITEM_HEIGHT * 4.5,
+                          width: "20ch",
+                        },
+                      },
+                    }}
+                  >
+                    {options.map((option) => (
+                      <MenuItem
+                        key={option}
+                        selected={option === "Pyxis"}
+                        onClick={handleClose}
+                      >
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </Box>
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "1rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "1rem",
+              }}
+            >
+              {filteredMessages.map((msg: Message, index: number) => (
+                <Box
+                  key={index}
+                  className={`chat ${msg.fromSelf ? "chat-end" : "chat-start"}`}
+                >
+                  <div className="chat-image avatar">
+                    <div className="w-10 rounded-full">
+                      <img
+                        alt="Avatar"
+                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                      />
+                    </div>
+                  </div>
+                  <div className="chat-header">
+                    {msg.fromSelf ? "You" : msg.from_number}
+                    <time className="text-xs opacity-50">12:46</time>
+                  </div>
+                  <div className="chat-bubble break-words whitespace-normal w-fit max-w-[75%] p-3">
+                    {/* {msg.message} */}
+                    {/* check if IsImg true then show img */}
+                    {msg?.IsImage ? (
+                      <img
+                        className="w-40 h-40"
+                        alt="Avatar"
+                        src={msg?.message}
+                      />
+                    ) : (
+                      decryptData(msg?.message, password)
+                    )}
+                    {/* {decryptData(msg?.message, password)} */}
+                  </div>
+                  <div className="chat-footer opacity-50">Delivered</div>
+                </Box>
+              ))}
+              <div ref={messagesEndRef} /> {/* Scroll to the bottom */}
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                gap: "1rem",
+                padding: "1rem",
+                borderTop: "1px solid #70486d",
+                backgroundColor: "#51344F",
+              }}
+            >
+              <Button
+                component="label"
+                role={undefined}
+                // variant="outlined"
+                tabIndex={-1}
+                startIcon={<AddIcon sx={{ width: "30px", height: "30px" }} />}
+              >
+                <VisuallyHiddenInput
+                  type="file"
+                  onChange={handleimageuploadchange}
+                  // multiple
+                />
+              </Button>
+              <input
+                type="text"
+                placeholder="Type here"
+                className="input input-bordered w-full"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
               />
-            </Button>
-            <Button variant="contained" onClick={sendMessage}>
-              Send
-            </Button>
+              <Button variant="contained" onClick={sendMessage}>
+                Send
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        </>
       ) : (
         <Box
           sx={{
