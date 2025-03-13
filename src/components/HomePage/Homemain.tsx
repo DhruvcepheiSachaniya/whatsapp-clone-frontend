@@ -3,11 +3,17 @@ import HeaderBar from "../HeaderBar";
 import { Box } from "@mui/material";
 import FirstChatPart from "./FirstChatPart";
 import SecondChatPart from "./SecondChatPart";
+import { RootState } from "../../redux/store/store";
+import { useDispatch, useSelector } from "react-redux";
+import { setcurrentImgPreviewUrl } from "../../redux/slice/chatstepper";
+import { CircleX } from "lucide-react";
 
 const HomeMainPage: React.FC = () => {
-  //TODO1:- Able to search only those in contacts and as well as in all,
-  //TODO2:- onclick it should show the chat,
-  //TODO3:- able to chat with,
+  const dispatch = useDispatch();
+
+  const currentImgPreviewUrl = useSelector(
+    (state: RootState) => state.chat.currentImgPreviewUrl
+  );
 
   return (
     <>
@@ -27,6 +33,29 @@ const HomeMainPage: React.FC = () => {
         </Box>
         <Box sx={{ width: "70%" }}>
           <SecondChatPart />
+          {currentImgPreviewUrl ? (
+            <Box
+              sx={{
+                position: "relative",
+                bottom: "205px",
+                zIndex: 0,
+              }}
+            >
+              <CircleX
+                style={{
+                  position: "relative",
+                  marginLeft: "5rem",
+                  cursor: "pointer",
+                }}
+                onClick={() => dispatch(setcurrentImgPreviewUrl(null))}
+              />
+              <img
+                src={URL.createObjectURL(currentImgPreviewUrl)}
+                alt="preview"
+                style={{ width: "100px", height: "100px" }}
+              />
+            </Box>
+          ) : undefined}
         </Box>
       </Box>
 

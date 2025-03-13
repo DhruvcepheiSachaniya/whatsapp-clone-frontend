@@ -7,6 +7,7 @@ export const ChatSlice = createSlice({
     currentUserSocketId: "",
     currentUserPhotoUrl: "",
     currentUserUserName: "",
+    currentImgPreviewUrl: null,
     onlineUsers: [],
   },
   reducers: {
@@ -25,6 +26,9 @@ export const ChatSlice = createSlice({
     setcurrentUserUserName: (state, action) => {
       state.currentUserUserName = action.payload;
     },
+    setcurrentImgPreviewUrl: (state, action) => {
+      state.currentImgPreviewUrl = action.payload;
+    },
   },
 });
 
@@ -34,6 +38,7 @@ export const {
   setonlineUsers,
   setcurrentUserPhotoUrl,
   setcurrentUserUserName,
+  setcurrentImgPreviewUrl,
 } = ChatSlice.actions;
 
 export default ChatSlice.reducer;
