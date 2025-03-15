@@ -17,6 +17,7 @@ import { RootState } from "../../redux/store/store";
 import { getimagecloudurl } from "../API/Chat";
 import { setcurrentImgPreviewUrl } from "../../redux/slice/chatstepper";
 import { Message } from "./types";
+import ChatList from "./ChatList";
 
 const options = ["None", "Atria", "Callisto", "Dione"];
 
@@ -122,8 +123,8 @@ const SecondChatPart = () => {
           .filter((msg: Message) => msg?.IsActive)
           .map((msg: any) => ({
             ...msg,
-            // message: decryptData(msg.message || msg.meassage, password), // ✅ Display "message" instead of "meassage"
-            message: msg?.meassage || msg.message, // ✅ Display "message" instead of "meassage"
+            message: decryptData(msg.message || msg.meassage, password), // ✅ Display "message" instead of "meassage"
+            // message: msg?.meassage || msg.message, // ✅ Display "message" instead of "meassage"
             from_number: msg?.ownerId.MobileNumber, // Sender's number
             to_number: msg?.receiverId.MobileNumber, // Receiver's number
             fromSelf: msg?.ownerId.MobileNumber === userNumber, // Check if the logged-in user is the sender
@@ -363,47 +364,45 @@ const SecondChatPart = () => {
               sx={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "1rem",
+                // padding: "1rem",
                 display: "flex",
                 flexDirection: "column",
                 gap: "1rem",
               }}
             >
-              {filteredMessages.map((msg: Message, index: number) => (
-                <Box
-                  key={index}
-                  className={`chat ${msg.fromSelf ? "chat-end" : "chat-start"}`}
-                >
-                  <div className="chat-image avatar">
-                    <div className="w-10 rounded-full">
-                      <img
-                        alt="Avatar"
-                        src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                      />
+                {/* {filteredMessages.map((msg: Message, index: number) => (
+                  <Box
+                    key={index}
+                    className={`chat ${msg.fromSelf ? "chat-end" : "chat-start"}`}
+                  >
+                    <div className="chat-image avatar">
+                      <div className="w-10 rounded-full">
+                        <img
+                          alt="Avatar"
+                          src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="chat-header">
-                    {msg.fromSelf ? "You" : msg.from_number}
-                    <time className="text-xs opacity-50">12:46</time>
-                  </div>
-                  <div className="chat-bubble break-words whitespace-normal w-fit max-w-[75%] p-3">
-                    {/* {msg.message} */}
-                    {/* check if IsImg true then show img */}
-                    {msg?.IsImage ? (
-                      <img
-                        className="w-40 h-40"
-                        alt="Avatar"
-                        src={msg?.message}
-                      />
-                    ) : (
-                      decryptData(msg?.message, password)
-                    )}
-                    {/* {decryptData(msg?.message, password)} */}
-                  </div>
-                  <div className="chat-footer opacity-50">Delivered</div>
-                </Box>
-              ))}
-              <div ref={messagesEndRef} /> {/* Scroll to the bottom */}
+                    <div className="chat-header">
+                      {msg.fromSelf ? "You" : msg.from_number}
+                      <time className="text-xs opacity-50">12:46</time>
+                    </div>
+                    <div className="chat-bubble break-words whitespace-normal w-fit max-w-[75%] p-3">
+                      {msg?.IsImage ? (
+                        <img
+                          className="w-40 h-40"
+                          alt="Avatar"
+                          src={msg?.message}
+                        />
+                      ) : (
+                        decryptData(msg?.message, password)
+                      )}
+                    </div>
+                    <div className="chat-footer opacity-50">Delivered</div>
+                  </Box>
+                ))} */}
+              <ChatList filteredMessages={filteredMessages} />
+                {/* <div ref={messagesEndRef} /> Scroll to the bottom */}
             </Box>
             <Box
               sx={{
@@ -424,7 +423,7 @@ const SecondChatPart = () => {
                 <VisuallyHiddenInput
                   type="file"
                   onChange={handleimageuploadchange}
-                  // multiple
+                // multiple
                 />
               </Button>
               <input
