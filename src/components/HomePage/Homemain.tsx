@@ -25,7 +25,7 @@ const HomeMainPage: React.FC = () => {
           flexDirection: "row",
           height: "calc(100vh - 48px)", // Full height minus the header
           marginTop: "48px", // Match header height
-          padding: "2rem", //to make look like center
+          // padding: "2rem", //to make look like center
         }}
       >
         <Box sx={{ width: "30%" }}>

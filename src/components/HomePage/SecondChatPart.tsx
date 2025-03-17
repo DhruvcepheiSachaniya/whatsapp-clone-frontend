@@ -241,6 +241,14 @@ const SecondChatPart = () => {
     }
   };
 
+  const getSender = (msg: Message) => {
+    return msg.fromSelf ? msg.ownerId : msg.receiverId;
+  };
+
+  const getReceiver = (msg: Message) => {
+    return msg.fromSelf ? msg.receiverId : msg.ownerId;
+  };
+
   // Filter messages based on currentSocketId
   useEffect(() => {
     const updatedMessages = messages.filter(
@@ -254,6 +262,7 @@ const SecondChatPart = () => {
     setFilteredMessages(updatedMessages);
   }, [messages, userNumber, currentSocketId]); // Runs whenever messages update
 
+  console.log("filteredMessages", filteredMessages);
   const dispatch = useDispatch();
 
   // handing image upload
@@ -370,39 +379,63 @@ const SecondChatPart = () => {
                 gap: "1rem",
               }}
             >
-                {/* {filteredMessages.map((msg: Message, index: number) => (
+              {/* {filteredMessages.map((msg: Message, index: number) => {
+                // Format the timestamp (e.g., "16:39" from "2025-03-12T16:39:24.973Z")
+                const formattedTime = new Date(
+                  msg.Created_At
+                ).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+
+                return (
                   <Box
                     key={index}
-                    className={`chat ${msg.fromSelf ? "chat-end" : "chat-start"}`}
+                    className={`chat ${
+                      msg.fromSelf ? "chat-end" : "chat-start"
+                    }`}
                   >
                     <div className="chat-image avatar">
                       <div className="w-10 rounded-full">
                         <img
                           alt="Avatar"
-                          src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                          // src={
+                          //   msg.fromSelf
+                          //     ? msg.ownerId.UserPhotoUrl ||
+                          //       "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                          //     : msg.receiverId.UserPhotoUrl ||
+                          //       "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                          // }
+                          src={
+                            msg.ownerId.UserPhotoUrl ||
+                            "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                          }
                         />
                       </div>
                     </div>
                     <div className="chat-header">
-                      {msg.fromSelf ? "You" : msg.from_number}
-                      <time className="text-xs opacity-50">12:46</time>
+                      {msg.fromSelf ? "You" : msg.ownerId.UserName}{" "}
+                      <time className="text-xs opacity-50">
+                        {formattedTime}
+                      </time>{" "}
                     </div>
                     <div className="chat-bubble break-words whitespace-normal w-fit max-w-[75%] p-3">
-                      {msg?.IsImage ? (
+                      {msg.IsImage ? (
                         <img
                           className="w-40 h-40"
-                          alt="Avatar"
-                          src={msg?.message}
+                          alt="Chat Image"
+                          src={msg.message} // Render the image URL directly
                         />
                       ) : (
-                        decryptData(msg?.message, password)
+                        decryptData(msg.message, password) // Decrypt only text messages
                       )}
                     </div>
                     <div className="chat-footer opacity-50">Delivered</div>
                   </Box>
-                ))} */}
+                );
+              })} */}
               <ChatList filteredMessages={filteredMessages} />
-                {/* <div ref={messagesEndRef} /> Scroll to the bottom */}
+              {/* <div ref={messagesEndRef} /> Scroll to the bottom */}
             </Box>
             <Box
               sx={{
@@ -423,7 +456,7 @@ const SecondChatPart = () => {
                 <VisuallyHiddenInput
                   type="file"
                   onChange={handleimageuploadchange}
-                // multiple
+                  // multiple
                 />
               </Button>
               <input
@@ -431,6 +464,11 @@ const SecondChatPart = () => {
                 placeholder="Type here"
                 className="input input-bordered w-full"
                 value={message}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    sendMessage();
+                  }
+                }}
                 onChange={(e) => setMessage(e.target.value)}
               />
               <Button variant="contained" onClick={sendMessage}>
