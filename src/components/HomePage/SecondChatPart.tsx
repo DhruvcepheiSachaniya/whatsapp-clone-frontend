@@ -17,6 +17,7 @@ import { RootState } from "../../redux/store/store";
 import { getimagecloudurl } from "../API/Chat";
 import { setcurrentImgPreviewUrl } from "../../redux/slice/chatstepper";
 import { Message } from "./types";
+import ChatList from "./ChatList";
 
 const options = ["None", "Atria", "Callisto", "Dione"];
 
@@ -122,8 +123,8 @@ const SecondChatPart = () => {
           .filter((msg: Message) => msg?.IsActive)
           .map((msg: any) => ({
             ...msg,
-            // message: decryptData(msg.message || msg.meassage, password), // ✅ Display "message" instead of "meassage"
-            message: msg?.meassage || msg.message, // ✅ Display "message" instead of "meassage"
+            message: decryptData(msg.message || msg.meassage, password), // ✅ Display "message" instead of "meassage"
+            // message: msg?.meassage || msg.message, // ✅ Display "message" instead of "meassage"
             from_number: msg?.ownerId.MobileNumber, // Sender's number
             to_number: msg?.receiverId.MobileNumber, // Receiver's number
             fromSelf: msg?.ownerId.MobileNumber === userNumber, // Check if the logged-in user is the sender
@@ -372,13 +373,13 @@ const SecondChatPart = () => {
               sx={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "1rem",
+                // padding: "1rem",
                 display: "flex",
                 flexDirection: "column",
                 gap: "1rem",
               }}
             >
-              {filteredMessages.map((msg: Message, index: number) => {
+              {/* {filteredMessages.map((msg: Message, index: number) => {
                 // Format the timestamp (e.g., "16:39" from "2025-03-12T16:39:24.973Z")
                 const formattedTime = new Date(
                   msg.Created_At
@@ -414,11 +415,9 @@ const SecondChatPart = () => {
                     </div>
                     <div className="chat-header">
                       {msg.fromSelf ? "You" : msg.ownerId.UserName}{" "}
-                      {/* Display receiver's name */}
                       <time className="text-xs opacity-50">
                         {formattedTime}
                       </time>{" "}
-                      {/* Display formatted time */}
                     </div>
                     <div className="chat-bubble break-words whitespace-normal w-fit max-w-[75%] p-3">
                       {msg.IsImage ? (
@@ -434,8 +433,9 @@ const SecondChatPart = () => {
                     <div className="chat-footer opacity-50">Delivered</div>
                   </Box>
                 );
-              })}
-              <div ref={messagesEndRef} /> {/* Scroll to the bottom */}
+              })} */}
+              <ChatList filteredMessages={filteredMessages} />
+              {/* <div ref={messagesEndRef} /> Scroll to the bottom */}
             </Box>
             <Box
               sx={{
