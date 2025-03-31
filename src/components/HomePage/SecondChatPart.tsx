@@ -18,6 +18,8 @@ import { getimagecloudurl } from "../API/Chat";
 import { setcurrentImgPreviewUrl } from "../../redux/slice/chatstepper";
 import { Message } from "./types";
 import ChatList from "./ChatList";
+import { decryptData } from "../../shared/components/security";
+import { password } from "../../shared/components/security";
 
 const options = ["None", "Atria", "Callisto", "Dione"];
 
@@ -83,32 +85,6 @@ const SecondChatPart = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  // Decryption function (same as backend)
-  const decryptData = (encryptedData: string, password: string): string => {
-    try {
-      const [salt, ivHex, encrypted] = encryptedData.split("|");
-      if (!salt || !ivHex || !encrypted) {
-        throw new Error("Invalid encrypted data");
-      }
-      const key = CryptoJS.PBKDF2(password, salt, {
-        keySize: 192 / 32,
-        iterations: 1,
-      });
-      const iv = CryptoJS.enc.Hex.parse(ivHex);
-      const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
-        iv: iv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7,
-      });
-      return decrypted.toString(CryptoJS.enc.Utf8);
-    } catch (error) {
-      console.error("Decryption failed:", error);
-      return encryptedData; // Return the original data if decryption fails
-    }
-  };
-
-  const password = "Password is used to generate key";
 
   // Fetch chat history on select user
   useEffect(() => {
