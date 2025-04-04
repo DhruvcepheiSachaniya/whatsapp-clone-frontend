@@ -1,4 +1,11 @@
-import { Typography, Box } from "@mui/material";
+import {
+  Typography,
+  Box,
+  IconButton,
+  Menu,
+  MenuItem,
+  styled,
+} from "@mui/material";
 import { useDispatch } from "react-redux";
 import { setChatAreastepper } from "../../redux/slice/stepper";
 // import { io, Socket } from "socket.io-client";
@@ -15,9 +22,15 @@ import axiosInstance from "../networkCalls/axiosinstance";
 import { setcontactList } from "../../redux/slice/userslice";
 import toast from "react-hot-toast";
 import { RootState } from "../../redux/store/store";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 // URL of your WebSocket server
 // const SOCKET_SERVER_URL = "http://localhost:8080";
+
+//for menu item
+const options = ["Add Contacts", "Create Group", "Logout"];
+
+const ITEM_HEIGHT = 48;
 
 const FirstChatPart = () => {
   //redux variables
@@ -56,32 +69,6 @@ const FirstChatPart = () => {
     fetchContactList();
   }, [usernumber, dispatch]);
 
-  //socket logic
-  // const [socket, setSocket] = useState<Socket | null>(null);
-  // const [message, setMessage] = useState<string>("");
-  // const [toUserId, setToUserId] = useState<string>("");
-  // console.log("onlineUsers", onlineUsers);
-
-  // useEffect(() => {
-  //   if (!usernumber) return; // Ensure usernumber is available before connecting
-
-  //   const newSocket = io(SOCKET_SERVER_URL);
-
-  //   if (!newSocket) return;
-  //   dispatch(setsoket(newSocket));
-
-  //   newSocket.emit("register", { userId: usernumber });
-
-  //   // Set up listeners
-  //   newSocket.on("userList", (users) => {
-  //     dispatch(setonlineUsers(users));
-  //   });
-
-  //   return () => {
-  //     newSocket.disconnect();
-  //   };
-  // }, [usernumber, dispatch]); // Only reconnect when usernumber changes
-
   // Extract online user MobileNumbers, excluding the logged-in user
   const onlineUserNumbers = Object.keys(onlineUsers).filter(
     (number) => number !== usernumber
@@ -113,10 +100,15 @@ const FirstChatPart = () => {
   const FinalContactFilter =
     searchFilter.length > 0 ? searchFilter : sortedContacts;
 
-  //NOTE:- this is the old logic
-  // const filterdOnlineUsers = Object.keys(contactList).filter(
-  //   (userId) => userId !== usernumber
-  // );
+  //for Menu Item
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: any) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <Box
@@ -129,34 +121,80 @@ const FirstChatPart = () => {
     >
       <Box
         sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
           position: "fixed",
-          width: "28%",
+          width: "30%",
           zIndex: 1,
           backgroundColor: "#51344F",
           padding: "1rem",
         }}
       >
-        <label className="input input-bordered flex items-center gap-2">
-          <input
-            type="text"
-            className="grow"
-            placeholder="Search By Number"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 16 16"
-            fill="currentColor"
-            className="h-4 w-4 opacity-70"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
-              clipRule="evenodd"
+        <Box width={"100%"}>
+          <label className="input input-bordered flex items-center gap-2">
+            <input
+              type="text"
+              className="grow"
+              placeholder="Search By Number"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
-          </svg>
-        </label>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              className="h-4 w-4 opacity-70"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </label>
+        </Box>
+        <Box>
+          <IconButton
+            aria-label="more"
+            id="long-button"
+            aria-controls={open ? "long-menu" : undefined}
+            aria-expanded={open ? "true" : undefined}
+            aria-haspopup="true"
+            onClick={handleClick}
+          >
+            <MoreVertIcon />
+          </IconButton>
+          <Menu
+            id="long-menu"
+            MenuListProps={{
+              "aria-labelledby": "long-button",
+            }}
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            slotProps={{
+              paper: {
+                style: {
+                  maxHeight: ITEM_HEIGHT * 4.5,
+                  width: "20ch",
+                  background: "#51344F",
+                  color: "white",
+                },
+              },
+            }}
+          >
+            {options.map((option) => (
+              <MenuItem
+                key={option}
+                selected={option === "Pyxis"}
+                onClick={handleClose}
+              >
+                {option}
+              </MenuItem>
+            ))}
+          </Menu>
+        </Box>
       </Box>
       {/* get user which are in the contacts */}
       <Box

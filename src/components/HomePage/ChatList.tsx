@@ -79,14 +79,14 @@ const ChatList = ({ filteredMessages }: { filteredMessages: any[] }) => {
         overflowY: "auto",
         display: "flex",
         flexDirection: "column",
-        gap: "1rem",
+        // gap: "1rem",
       }}
     >
       <List
-        height={500} // Adjust based on your container height
+        height={650} // Adjust based on your container height
         itemCount={filteredMessages.length}
-        itemSize={200} // Adjust based on the height of each row
-        width="100%" // Use 100% width or a fixed value
+        itemSize={150} // Adjust based on the height of each row
+        width="auto" // Use 100% width or a fixed value
         ref={listRef}
       >
         {Row}
