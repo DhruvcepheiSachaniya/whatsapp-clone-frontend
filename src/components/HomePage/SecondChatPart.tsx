@@ -1,16 +1,10 @@
-import { Box, Typography } from "@mui/material";
-import { MessageSquare } from "lucide-react";
+import { Box, styled, Typography } from "@mui/material";
+import { MessageSquare, PhoneCall } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSocket } from "./socket";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import axiosInstance from "../networkCalls/axiosinstance";
-import CryptoJS from "crypto-js";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
 import { RootState } from "../../redux/store/store";
@@ -20,10 +14,7 @@ import { Message } from "./types";
 import ChatList from "./ChatList";
 import { decryptData } from "../../shared/components/security";
 import { password } from "../../shared/components/security";
-
-const options = ["None", "Atria", "Callisto", "Dione"];
-
-const ITEM_HEIGHT = 48;
+import { useNavigate } from "react-router-dom";
 
 //For File Input
 const VisuallyHiddenInput = styled("input")({
@@ -42,6 +33,8 @@ const SecondChatPart = () => {
   const { socket } = useSocket();
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState([]);
+
+  const navigate = useNavigate();
 
   const [filteredMessages, setFilteredMessages] = useState([]);
 
@@ -75,16 +68,6 @@ const SecondChatPart = () => {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [filteredMessages, chatareastepper]); // Trigger on message updates or chat area state change
-
-  //for Menu Item
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: any) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   // Fetch chat history on select user
   useEffect(() => {
@@ -279,6 +262,7 @@ const SecondChatPart = () => {
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "space-between",
+                alignItems: "center",
                 gap: "10px",
                 marginTop: "0.5rem",
                 cursor: "pointer",
@@ -303,46 +287,13 @@ const SecondChatPart = () => {
                   <Typography>online</Typography>
                 </Box>
               </Box>
-              <Box>
-                <Box>
-                  <IconButton
-                    aria-label="more"
-                    id="long-button"
-                    aria-controls={open ? "long-menu" : undefined}
-                    aria-expanded={open ? "true" : undefined}
-                    aria-haspopup="true"
-                    onClick={handleClick}
-                  >
-                    <MoreVertIcon />
-                  </IconButton>
-                  <Menu
-                    id="long-menu"
-                    MenuListProps={{
-                      "aria-labelledby": "long-button",
-                    }}
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleClose}
-                    slotProps={{
-                      paper: {
-                        style: {
-                          maxHeight: ITEM_HEIGHT * 4.5,
-                          width: "20ch",
-                        },
-                      },
-                    }}
-                  >
-                    {options.map((option) => (
-                      <MenuItem
-                        key={option}
-                        selected={option === "Pyxis"}
-                        onClick={handleClose}
-                      >
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </Box>
+              <Box
+                sx={{
+                  mr: "1rem",
+                }}
+                onClick={() => navigate("/call")}
+              >
+                <PhoneCall size={20} />
               </Box>
             </Box>
             <Box
