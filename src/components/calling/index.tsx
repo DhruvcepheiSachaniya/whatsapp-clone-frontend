@@ -2,8 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { useSocket } from "../HomePage/socket";
 import Peer from "simple-peer";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { Button, IconButton, Stack, TextField, Typography } from "@mui/material";
+import {
+  Button,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { Phone } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store/store";
 
 const Calling = () => {
   const { socket } = useSocket();
@@ -20,19 +28,37 @@ const Calling = () => {
   const userVideo = useRef<HTMLVideoElement>(null);
   const connectionRef = useRef<Peer.Instance | null>(null);
 
+  const currentSocketId = useSelector(
+    (state: RootState) => state.chat.currentUserSocketId
+  );
+  console.log("Current receiver socket ID:", currentSocketId);
+
   useEffect(() => {
+    console.log("Socket instance:", socket);
+    if (socket) {
+      socket.on("connect", () => console.log("Socket connected:", socket.id));
+      socket.on("disconnect", () => console.log("Socket disconnected"));
+    }
+
     const getMediaStream = async () => {
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
         console.log("Stream initialized:", mediaStream);
         console.log("Stream active:", mediaStream.active);
+        console.log("Stream tracks:", mediaStream.getTracks());
         setStream(mediaStream);
         if (myVideo.current) {
           myVideo.current.srcObject = mediaStream;
-          myVideo.current.play().catch((err) => console.error("Video play error:", err));
+          myVideo.current
+            .play()
+            .catch((err) => console.error("Video play error:", err));
         }
       } catch (err) {
         console.error("Error getting media stream:", err);
+        alert("Failed to access camera/microphone. Please check permissions.");
       }
     };
     getMediaStream();
@@ -51,62 +77,48 @@ const Calling = () => {
     });
 
     return () => {
+      socket?.off("connect");
+      socket?.off("disconnect");
       socket?.off("me");
       socket?.off("callUser");
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop()); // Clean up stream
-      }
     };
   }, [socket]);
 
-  const callUser = (id: string) => {
-    console.log("Calling user with ID:", id);
-    console.log("Socket:", socket);
+  const callUser = (userToCall: string) => {
+    console.log(`📞 Calling user with ID: ${userToCall}`);
+    console.log("Socket connected:", socket?.connected);
+    console.log("Socket ID:", socket?.id);
     console.log("Stream:", stream);
     console.log("Stream active:", stream?.active);
-    console.log("My ID (me):", me);
+    console.log("Stream tracks:", stream?.getTracks());
 
-    if (!socket) {
-      console.error("Socket is not initialized");
+    if (!socket || !socket.connected) {
+      console.error("🚨 Socket is not initialized or not connected");
+      alert("Socket not connected. Please refresh the page.");
       return;
     }
-    if (!stream || !stream.active) {
-      console.error("Stream is not available or inactive");
+    if (!stream || !stream.active || stream.getTracks().length === 0) {
+      console.error("🚨 Stream is not available, inactive, or has no tracks");
+      alert("Cannot make call: Camera/microphone not ready.");
       return;
     }
 
-    const peer = new Peer({ initiator: true, trickle: false, stream });
-    console.log("Peer created:", peer);
-
-    peer.on("signal", (data: any) => {
-      console.log("Signal data:", data);
-      socket.emit("callUser", {
-        userToCall: id,
-        signalData: data,
-        from: me,
-        name: name,
-      });
+    // Temporarily skip Peer creation
+    console.log("✅ Emitting callUser event without Peer...");
+    socket.emit("callUser", {
+      userToCall,
+      signalData: { test: "dummy-signal" }, // Dummy signal
+      from: me,
+      name: name || "Caller",
     });
-
-    peer.on("stream", (stream: any) => {
-      console.log("Received stream from peer:", stream);
-      if (userVideo.current) {
-        userVideo.current.srcObject = stream;
-      }
-    });
-
-    socket.on("callAccepted", (signal: any) => {
-      console.log("Call accepted with signal:", signal);
-      setCallAccepted(true);
-      peer.signal(signal);
-    });
-
-    connectionRef.current = peer;
+    console.log("✅ callUser event emitted successfully!");
   };
 
   const answerCall = () => {
-    if (!stream || !stream.active) {
-      console.error("Stream is not available or inactive for answering");
+    if (!stream || !stream.active || stream.getTracks().length === 0) {
+      console.error(
+        "🚨 Stream is not available, inactive, or has no tracks for answering"
+      );
       return;
     }
     setCallAccepted(true);
@@ -185,7 +197,7 @@ const Calling = () => {
               <IconButton
                 color="primary"
                 aria-label="call"
-                onClick={() => callUser(idToCall)}
+                onClick={() => callUser(currentSocketId || idToCall)}
               >
                 <Phone size={32} />
               </IconButton>

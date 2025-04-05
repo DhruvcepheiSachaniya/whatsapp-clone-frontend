@@ -1,5 +1,5 @@
 import { Box, styled, Typography } from "@mui/material";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, PhoneCall } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSocket } from "./socket";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +14,7 @@ import { Message } from "./types";
 import ChatList from "./ChatList";
 import { decryptData } from "../../shared/components/security";
 import { password } from "../../shared/components/security";
+import { useNavigate } from "react-router-dom";
 
 //For File Input
 const VisuallyHiddenInput = styled("input")({
@@ -32,6 +33,8 @@ const SecondChatPart = () => {
   const { socket } = useSocket();
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState([]);
+
+  const navigate = useNavigate();
 
   const [filteredMessages, setFilteredMessages] = useState([]);
 
@@ -259,6 +262,7 @@ const SecondChatPart = () => {
                 display: "flex",
                 flexDirection: "row",
                 justifyContent: "space-between",
+                alignItems: "center",
                 gap: "10px",
                 marginTop: "0.5rem",
                 cursor: "pointer",
@@ -282,6 +286,14 @@ const SecondChatPart = () => {
                   <Typography>{currentUserUserName}</Typography>
                   <Typography>online</Typography>
                 </Box>
+              </Box>
+              <Box
+                sx={{
+                  mr: "1rem",
+                }}
+                onClick={() => navigate("/call")}
+              >
+                <PhoneCall size={20} />
               </Box>
             </Box>
             <Box
